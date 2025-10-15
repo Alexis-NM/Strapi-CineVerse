@@ -43,7 +43,6 @@
 2. Ouverture de la fiche
 3. Correction du casting + titres alternatifs
 4. Enregistrement
-5. Marquage “vérifiée”
 
 ## Scénarios critiques
 
