@@ -45,7 +45,6 @@
 2. Ouvrir quelques fiches
 3. Rechercher sur TMDb (panneau intégré) pour visuels/cast
 4. Ajouter à une sélection
-5. Exporter le listing
 
 ## Scénarios critiques
 
