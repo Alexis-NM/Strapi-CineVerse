@@ -1,0 +1,40 @@
+{
+    "kind": "collectionType",
+    "collectionName": "movies",
+    "info": {
+        "singularName": "movie",
+        "pluralName": "movies",
+        "displayName": "Movie"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "attributes": {
+        "tmdbId": {
+            "type": "integer",
+            "unique": true
+        },
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "description": {
+            "type": "text"
+        },
+        "releaseDate": {
+            "type": "date"
+        },
+        "director": {
+            "type": "string"
+        },
+        "popularity": {
+            "type": "decimal"
+        },
+        "actors": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::actor.actor",
+            "inversedBy": "movies"
+        }
+    }
+}
