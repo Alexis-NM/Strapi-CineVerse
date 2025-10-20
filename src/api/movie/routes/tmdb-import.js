@@ -7,7 +7,7 @@ module.exports = {
       path: "/tmdb/import/popular",
       handler: "tmdb-import.importPopular",
       config: {
-        policies: ["admin::isAuthenticatedAdmin"], // réservé aux admins
+        policies: ["admin::isAuthenticatedAdmin"],
       },
     },
   ],
