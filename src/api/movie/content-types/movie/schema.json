@@ -32,6 +32,9 @@
         "trailer": {
             "type": "string"
         },
+        "poster_url": {
+            "type": "string"
+        },
         "poster_picture": {
             "type": "media",
             "multiple": false,
