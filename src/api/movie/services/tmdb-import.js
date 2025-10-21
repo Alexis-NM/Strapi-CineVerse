@@ -1,11 +1,8 @@
 "use strict";
 
 const slugify = require("slugify");
-const uploadFromUrl = require("../../../utils/upload-from-url"); // src/utils/upload-from-url.js
 
 module.exports = ({ strapi }) => {
-  // --- helpers internes ---
-
   const genderMap = {
     0: "unspecified",
     1: "female",
@@ -26,7 +23,7 @@ module.exports = ({ strapi }) => {
 
       let cat = await strapi.db.query("api::category.category").findOne({
         where: { tmdb_id: g.id },
-        select: ["id"],
+        select: ["id", "slug"],
       });
 
       const slug = toSlug(g.name, String(g.id));
@@ -36,16 +33,16 @@ module.exports = ({ strapi }) => {
           data: {
             tmdb_id: g.id,
             name: g.name,
-            slug, // ✅ on fournit explicitement le uid
+            slug,
             publishedAt: new Date().toISOString(),
           },
         });
-      } else {
-        // au cas où des anciennes lignes aient slug null
+      } else if (!cat.slug) {
         await strapi.entityService.update("api::category.category", cat.id, {
           data: { slug },
         });
       }
+
       ids.push(cat.id);
     }
     return ids;
@@ -56,52 +53,32 @@ module.exports = ({ strapi }) => {
     displayName,
     flags = { actor: false, filmmaker: false }
   ) {
-    // cherche par tmdb_id
     let p = await strapi.db.query("api::personality.personality").findOne({
       where: { tmdb_id: personId },
       select: ["id"],
     });
 
     if (!p) {
-      // fetch détails TMDb
       const tmdb = strapi.service("api::movie.tmdb");
       const person = await tmdb.fetchPersonDetails(personId).catch(() => ({}));
 
       const full = displayName || person.name || "";
-      const { firstName, lastName } = strapi
-        .service("api::movie.tmdb")
-        .splitName(full);
+      const { firstName, lastName } = tmdb.splitName(full);
       const data = {
         tmdb_id: personId,
-        name: lastName || person.name || full, // champ "name" requis dans ton schema
+        name: lastName || person.name || full, // requis
         firstname: firstName || "",
         biography: person.biography || null,
         birthdate: person.birthday || null,
         gender: genderMap[person.gender] || "unspecified",
         is_actor: !!flags.actor,
         is_filmmaker: !!flags.filmmaker,
+        // URL TMDb directe (fallback d'image)
+        profile_url: person.profile_path
+          ? tmdb.imageUrl(person.profile_path, "w500")
+          : null,
         publishedAt: new Date().toISOString(),
       };
-
-      // photo de profil (optionnel)
-      if (person.profile_path) {
-        try {
-          const url = strapi
-            .service("api::movie.tmdb")
-            .imageUrl(person.profile_path, "w500");
-          const up = await uploadFromUrl(
-            strapi,
-            url,
-            `person_${personId}.jpg`,
-            {}
-          );
-          if (up?.id) data.profil_picture = up.id;
-        } catch (e) {
-          strapi.log.warn(
-            `[TMDb Import] profil_picture upload failed for person ${personId}: ${e.message}`
-          );
-        }
-      }
 
       p = await strapi.entityService.create("api::personality.personality", {
         data,
@@ -109,7 +86,7 @@ module.exports = ({ strapi }) => {
       return p.id;
     }
 
-    // s'assurer que les flags sont à jour
+    // mettre à jour flags si nécessaires
     const patch = {};
     if (flags.actor) patch.is_actor = true;
     if (flags.filmmaker) patch.is_filmmaker = true;
@@ -122,68 +99,36 @@ module.exports = ({ strapi }) => {
   }
 
   return {
-    /**
-     * Importe la page "popular" et enrichit:
-     * - catégories (genres) avec slug
-     * - réalisateurs/acteurs (personnalités complètes)
-     * - poster (upload)
-     * - durée (runtime)
-     * - trailer (YouTube)
-     */
     async importPopular(page = 1) {
       const tmdb = strapi.service("api::movie.tmdb");
       const movies = await tmdb.fetchPopular(page);
 
       let created = 0;
       let skipped = 0;
+      let updated = 0;
 
       for (const m of movies) {
-        // 1) skip si déjà importé
-        const exists = await strapi.db.query("api::movie.movie").findOne({
-          where: { tmdb_id: m.id },
-          select: ["id"],
-        });
-        if (exists) {
-          skipped++;
-          continue;
-        }
+        const existing = await strapi.entityService.findMany(
+          "api::movie.movie",
+          {
+            filters: { tmdb_id: m.id },
+            fields: ["id", "trailer", "duration_minutes", "poster_url"],
+            limit: 1,
+          }
+        );
+        const found = Array.isArray(existing) ? existing[0] : null;
 
-        // 2) détails, vidéos, crédits
         const [details, videos, credits] = await Promise.all([
           tmdb.fetchMovieDetails(m.id),
           tmdb.fetchMovieVideos(m.id),
           tmdb.fetchMovieCredits(m.id),
         ]);
 
-        // 3) catégories (genres)
-        const categoryIds = await upsertCategoriesFromGenres(
-          details.genres || []
-        );
-
-        // 4) réalisateurs
-        const directorCrew = (credits.crew || []).filter(
-          (c) => c.job === "Director"
-        );
-        const directorIds = [];
-        for (const d of directorCrew) {
-          const id = await upsertPerson(d.id, d.name, { filmmaker: true });
-          directorIds.push(id);
-        }
-
-        // 5) acteurs (top 10)
-        const topCast = (credits.cast || []).slice(0, 10);
-        const actorIds = [];
-        for (const a of topCast) {
-          const id = await upsertPerson(a.id, a.name, { actor: true });
-          actorIds.push(id);
-        }
-
-        // 6) trailer
+        // Trailer (YouTube)
         const trailerObj =
           (videos || [])
             .filter((v) => v.site === "YouTube" && v.type === "Trailer")
             .sort((a, b) => {
-              // official d'abord, sinon par published_at desc si dispo
               const oa = a.official ? 1 : 0;
               const ob = b.official ? 1 : 0;
               if (oa !== ob) return ob - oa;
@@ -191,54 +136,79 @@ module.exports = ({ strapi }) => {
               const db = Date.parse(b.published_at || b.publishedAt || 0) || 0;
               return db - da;
             })[0] || null;
+
         const trailerUrl = trailerObj
           ? `https://www.youtube.com/watch?v=${trailerObj.key}`
           : null;
 
-        // 7) poster (upload)
-        let posterId = null;
-        if (details.poster_path) {
-          try {
-            const url = tmdb.imageUrl(details.poster_path, "w780");
-            const up = await uploadFromUrl(
-              strapi,
-              url,
-              `movie_${m.id}.jpg`,
-              {}
-            );
-            posterId = up?.id || null;
-          } catch (e) {
-            strapi.log.warn(
-              `[TMDb Import] poster upload failed for movie ${m.id}: ${e.message}`
-            );
-          }
+        // Réals & Acteurs
+        const directorCrew = (credits.crew || []).filter(
+          (c) => c.job === "Director"
+        );
+        const directorIds = [];
+        for (const d of directorCrew)
+          directorIds.push(
+            await upsertPerson(d.id, d.name, { filmmaker: true })
+          );
+
+        const actorIds = [];
+        for (const a of (credits.cast || []).slice(0, 10)) {
+          actorIds.push(await upsertPerson(a.id, a.name, { actor: true }));
         }
 
-        // 8) création du film
-        await strapi.entityService.create("api::movie.movie", {
-          data: {
-            tmdb_id: m.id,
-            title: m.title || m.original_title,
-            description: details.overview || m.overview || null,
-            release_date: m.release_date || details.release_date || null,
-            popularity: m.popularity ?? details.popularity ?? null,
-            duration_minutes: details.runtime || null,
-            trailer: trailerUrl,
-            poster_picture: posterId,
-            categories: categoryIds,
-            actors: actorIds,
-            directors: directorIds,
-            publishedAt: new Date().toISOString(),
-          },
-        });
+        // Catégories
+        const categoryIds = await upsertCategoriesFromGenres(
+          details.genres || []
+        );
 
-        created++;
+        // URL poster TMDb (fallback)
+        const posterUrl = details.poster_path
+          ? tmdb.imageUrl(details.poster_path, "w500")
+          : null;
+
+        if (!found) {
+          await strapi.entityService.create("api::movie.movie", {
+            data: {
+              tmdb_id: m.id,
+              title: m.title || m.original_title,
+              description: details.overview || m.overview || null,
+              release_date: m.release_date || details.release_date || null,
+              popularity: m.popularity ?? details.popularity ?? null,
+              duration_minutes: details.runtime || null,
+              trailer: trailerUrl,
+              poster_url: posterUrl, // ✅ on stocke l’URL TMDb
+              categories: categoryIds,
+              actors: actorIds,
+              directors: directorIds,
+              publishedAt: new Date().toISOString(),
+            },
+          });
+          created++;
+        } else {
+          const data = {};
+          if (!found.trailer && trailerUrl) data.trailer = trailerUrl;
+          if (!found.duration_minutes && details.runtime)
+            data.duration_minutes = details.runtime;
+          if (!found.poster_url && posterUrl) data.poster_url = posterUrl;
+          if (categoryIds.length) data.categories = categoryIds;
+          if (actorIds.length) data.actors = actorIds;
+          if (directorIds.length) data.directors = directorIds;
+
+          if (Object.keys(data).length) {
+            await strapi.entityService.update("api::movie.movie", found.id, {
+              data,
+            });
+            updated++;
+          } else {
+            skipped++;
+          }
+        }
       }
 
       strapi.log.info(
-        `[TMDb Import] Page ${page} → Films créés: ${created}, ignorés: ${skipped}`
+        `[TMDb Import] Page ${page} → created: ${created}, updated: ${updated}, skipped: ${skipped}`
       );
-      return { page, created, skipped, totalProcessed: movies.length };
+      return { page, created, updated, skipped, totalProcessed: movies.length };
     },
   };
 };

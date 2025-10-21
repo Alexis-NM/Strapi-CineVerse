@@ -502,6 +502,7 @@ export interface ApiMovieMovie extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     popularity: Schema.Attribute.Decimal;
     poster_picture: Schema.Attribute.Media;
+    poster_url: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     release_date: Schema.Attribute.Date;
     title: Schema.Attribute.String &
@@ -559,6 +560,7 @@ export interface ApiPersonalityPersonality extends Struct.CollectionTypeSchema {
         maxLength: 180;
       }>;
     profil_picture: Schema.Attribute.Media;
+    profile_url: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     tmdb_id: Schema.Attribute.Integer & Schema.Attribute.Unique;
     updatedAt: Schema.Attribute.DateTime;
