@@ -1,0 +1,72 @@
+{
+    "collectionName": "personalities",
+    "info": {
+        "singularName": "personality",
+        "pluralName": "personalities",
+        "displayName": "Personality",
+        "description": "Personnes (acteurs / réalisateurs)"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "attributes": {
+        "tmdb_id": {
+            "type": "integer",
+            "unique": true
+        },
+        "profile_url": {
+            "type": "string"
+        },
+        "profil_picture": {
+            "type": "media",
+            "multiple": false,
+            "required": false
+        },
+        "firstname": {
+            "type": "string",
+            "required": false,
+            "maxLength": 180
+        },
+        "name": {
+            "type": "string",
+            "required": true,
+            "maxLength": 180
+        },
+        "birthdate": {
+            "type": "date"
+        },
+        "gender": {
+            "type": "enumeration",
+            "enum": [
+                "male",
+                "female",
+                "non_binary",
+                "unspecified"
+            ],
+            "default": "unspecified"
+        },
+        "biography": {
+            "type": "richtext"
+        },
+        "is_actor": {
+            "type": "boolean",
+            "default": false
+        },
+        "is_filmmaker": {
+            "type": "boolean",
+            "default": false
+        },
+        "acted_in": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::movie.movie",
+            "inversedBy": "actors"
+        },
+        "directed": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::movie.movie",
+            "inversedBy": "directors"
+        }
+    }
+}

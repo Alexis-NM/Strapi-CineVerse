@@ -1,0 +1,67 @@
+{
+    "collectionName": "movies",
+    "info": {
+        "singularName": "movie",
+        "pluralName": "movies",
+        "displayName": "Movie",
+        "description": "Films (Cineverse)"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "attributes": {
+        "tmdb_id": {
+            "type": "integer",
+            "unique": true
+        },
+        "title": {
+            "type": "string",
+            "required": true,
+            "minLength": 1,
+            "maxLength": 180
+        },
+        "description": {
+            "type": "richtext"
+        },
+        "release_date": {
+            "type": "date"
+        },
+        "popularity": {
+            "type": "decimal"
+        },
+        "trailer": {
+            "type": "string"
+        },
+        "poster_url": {
+            "type": "string"
+        },
+        "poster_picture": {
+            "type": "media",
+            "multiple": false,
+            "required": false
+        },
+        "duration_minutes": {
+            "type": "integer",
+            "required": false,
+            "min": 1
+        },
+        "categories": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::category.category",
+            "inversedBy": "movies"
+        },
+        "actors": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::personality.personality",
+            "mappedBy": "acted_in"
+        },
+        "directors": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::personality.personality",
+            "mappedBy": "directed"
+        }
+    }
+}
