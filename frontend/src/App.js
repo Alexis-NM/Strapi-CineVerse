@@ -1,9 +1,11 @@
-
-import './App.css';
+// src/App.jsx
+import Home from "./pages/Home";
 
 function App() {
   return (
-    <h1> Strapi CineVerse Frontend</h1>
+    <div className="min-h-screen bg-gray-100">
+      <Home />
+    </div>
   );
 }
 
