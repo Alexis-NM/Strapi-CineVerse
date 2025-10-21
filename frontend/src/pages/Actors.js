@@ -4,15 +4,23 @@ import ActorCard from "../components/ActorCard";
 
 export default function Actors() {
   const [actors, setActors] = useState([]);
+  const [movies, setMovies] = useState([]);
 
   useEffect(() => {
-    fetchMoviesWithActors().then((movies) => {
-      const allActors = movies.flatMap((movie) => movie.actors || []);
+    const loadData = async () => {
+      const moviesData = await fetchMoviesWithActors();
+      setMovies(moviesData); 
+
+     
+      const allActors = moviesData.flatMap((movie) => movie.actors || []);
       const uniqueActors = Array.from(
         new Map(allActors.map((actor) => [actor.documentId, actor])).values()
       );
-      setActors(uniqueActors);
-    });
+
+      setActors(uniqueActors); 
+    };
+
+    loadData();
   }, []);
 
   return (
@@ -23,11 +31,14 @@ export default function Actors() {
         <p className="text-center text-gray-400">Aucun acteur trouvé.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-44 gap-y-10 max-w-6xl justify-items-center">
-        {actors.map((actor) => (
-            <ActorCard key={actor.documentId} actor={actor} />
-        ))}
+          {actors.map((actor) => (
+            <ActorCard
+              key={actor.documentId}
+              actor={actor}
+              movies={movies} 
+            />
+          ))}
         </div>
-
       )}
     </div>
   );
