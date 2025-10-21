@@ -1,34 +1,33 @@
 {
-    "collectionName": "actors",
+    "collectionName": "categories",
     "info": {
-        "singularName": "actor",
-        "pluralName": "actors",
-        "displayName": "Actor"
+        "singularName": "category",
+        "pluralName": "categories",
+        "displayName": "Category",
+        "description": "Genres TMDb"
     },
     "options": {
-        "draftAndPublish": false
+        "draftAndPublish": true
     },
     "attributes": {
-        "tmdbId": {
+        "tmdb_id": {
             "type": "integer",
             "unique": true
         },
-        "firstName": {
+        "name": {
             "type": "string",
             "required": true
         },
-        "lastName": {
-            "type": "string",
+        "slug": {
+            "type": "uid",
+            "targetField": "name",
             "required": true
-        },
-        "birthDate": {
-            "type": "date"
         },
         "movies": {
             "type": "relation",
             "relation": "manyToMany",
             "target": "api::movie.movie",
-            "mappedBy": "actors"
+            "mappedBy": "categories"
         }
     }
 }

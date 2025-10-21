@@ -430,29 +430,32 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiActorActor extends Struct.CollectionTypeSchema {
-  collectionName: 'actors';
+export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
+  collectionName: 'categories';
   info: {
-    displayName: 'Actor';
-    pluralName: 'actors';
-    singularName: 'actor';
+    description: 'Genres TMDb';
+    displayName: 'Category';
+    pluralName: 'categories';
+    singularName: 'category';
   };
   options: {
-    draftAndPublish: false;
+    draftAndPublish: true;
   };
   attributes: {
-    birthDate: Schema.Attribute.Date;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    firstName: Schema.Attribute.String & Schema.Attribute.Required;
-    lastName: Schema.Attribute.String & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<'oneToMany', 'api::actor.actor'> &
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::category.category'
+    > &
       Schema.Attribute.Private;
     movies: Schema.Attribute.Relation<'manyToMany', 'api::movie.movie'>;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
-    tmdbId: Schema.Attribute.Integer & Schema.Attribute.Unique;
+    slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
+    tmdb_id: Schema.Attribute.Integer & Schema.Attribute.Unique;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -462,28 +465,102 @@ export interface ApiActorActor extends Struct.CollectionTypeSchema {
 export interface ApiMovieMovie extends Struct.CollectionTypeSchema {
   collectionName: 'movies';
   info: {
+    description: 'Films (Cineverse)';
     displayName: 'Movie';
     pluralName: 'movies';
     singularName: 'movie';
   };
   options: {
-    draftAndPublish: false;
+    draftAndPublish: true;
   };
   attributes: {
-    actors: Schema.Attribute.Relation<'manyToMany', 'api::actor.actor'>;
+    actors: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::personality.personality'
+    >;
+    categories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::category.category'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    description: Schema.Attribute.Text;
-    director: Schema.Attribute.String;
+    description: Schema.Attribute.RichText;
+    directors: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::personality.personality'
+    >;
+    duration_minutes: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::movie.movie'> &
       Schema.Attribute.Private;
     popularity: Schema.Attribute.Decimal;
+    poster_picture: Schema.Attribute.Media;
     publishedAt: Schema.Attribute.DateTime;
-    releaseDate: Schema.Attribute.Date;
-    title: Schema.Attribute.String & Schema.Attribute.Required;
-    tmdbId: Schema.Attribute.Integer & Schema.Attribute.Unique;
+    release_date: Schema.Attribute.Date;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 180;
+        minLength: 1;
+      }>;
+    tmdb_id: Schema.Attribute.Integer & Schema.Attribute.Unique;
+    trailer: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPersonalityPersonality extends Struct.CollectionTypeSchema {
+  collectionName: 'personalities';
+  info: {
+    description: 'Personnes (acteurs / r\u00E9alisateurs)';
+    displayName: 'Personality';
+    pluralName: 'personalities';
+    singularName: 'personality';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    acted_in: Schema.Attribute.Relation<'manyToMany', 'api::movie.movie'>;
+    biography: Schema.Attribute.RichText;
+    birthdate: Schema.Attribute.Date;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    directed: Schema.Attribute.Relation<'manyToMany', 'api::movie.movie'>;
+    firstname: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 180;
+      }>;
+    gender: Schema.Attribute.Enumeration<
+      ['male', 'female', 'non_binary', 'unspecified']
+    > &
+      Schema.Attribute.DefaultTo<'unspecified'>;
+    is_actor: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    is_filmmaker: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::personality.personality'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 180;
+      }>;
+    profil_picture: Schema.Attribute.Media;
+    publishedAt: Schema.Attribute.DateTime;
+    tmdb_id: Schema.Attribute.Integer & Schema.Attribute.Unique;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1000,8 +1077,9 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
-      'api::actor.actor': ApiActorActor;
+      'api::category.category': ApiCategoryCategory;
       'api::movie.movie': ApiMovieMovie;
+      'api::personality.personality': ApiPersonalityPersonality;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
