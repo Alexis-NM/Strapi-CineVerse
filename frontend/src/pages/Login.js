@@ -4,6 +4,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { motion } from "framer-motion";
+import Modal from "../components/Modal";
 
 export default function Login() {
   const { login } = useAuth(); // on utilise la méthode du contexte
@@ -14,6 +15,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,11 +24,15 @@ export default function Login() {
     try {
       await login(email, password); // le contexte s’occupe du fetch et du stockage
       console.log("Loged in with success");
-      alert("Welcome to the party, pal !");
-      navigate(from, { replace: true }); // redirection après login
-    } catch (err) {
+      setShowModal(true); // affiche la modale
+      } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    navigate(from, { replace: true }); // redirection après fermeture
   };
 
   return (
@@ -71,6 +77,12 @@ export default function Login() {
           </Link>
         </p>
       </motion.form>
+      <Modal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        title="Welcome to the party, pal !"
+        message="You're now logged in. Let's explore Cineverse!"
+      />
     </div>
   );
 }

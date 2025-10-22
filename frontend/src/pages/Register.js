@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { motion } from "framer-motion";
+import Modal from "../components/Modal";
 
 export default function Register() {
   const { register } = useAuth(); // 👈 On récupère la fonction du contexte
@@ -12,6 +13,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,20 +22,23 @@ export default function Register() {
 
     // Vérification locale du mot de passe avant d’appeler Strapi
     if (password !== confirmPassword) {
-        setError("Les mots de passe ne correspondent pas.");
+        setError("Password do not match.");
         return;
     }
 
     try {
       await register(username, email, password); // Appel centralisé
-      console.log("✅ Compte créé avec succès");
-      setSuccess(true);
-      alert("Votre compte a bien été créé !");
-      window.location.href = "/login"; // regirection vers la page de connexion
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+      console.log("Account created with success !");
+      setShowModal(true);
+  } catch (err) {
+    setError(err.message);
+  }
+};
+
+const handleCloseModal = () => {
+  setShowModal(false);
+  window.location.href = "/login"; // redirection vers page de connexion
+};
 
 
   return (
@@ -70,6 +75,12 @@ export default function Register() {
           </a>
         </p>
       </motion.form>
+      <Modal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        title="Account Created! ✅"
+        message="Your Cineverse account is ready. You can now log in."
+      />
     </div>
   );
 }
