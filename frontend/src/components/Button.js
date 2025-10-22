@@ -3,7 +3,7 @@ export default function Button({ children, onClick, type = "button" }) {
     <button
       type={type}
       onClick={onClick}
-      className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition"
+      className="bg-[#e50000] hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition"
     >
       {children}
     </button>

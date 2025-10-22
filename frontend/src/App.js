@@ -10,48 +10,66 @@ import Filmmakers from "./pages/Filmmakers";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
+// 🧩 Layout gérant dynamiquement l’affichage du Header
+function Layout({ children }) {
+  const location = useLocation();
+
+  // Liste des pages sans Header
+  const hideHeaderRoutes = ["/login", "/register"];
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      {!shouldHideHeader && <Header />} {/* header caché sur login/register */}
+      <main className="flex-grow">{children}</main>
+      <Footer /> {/* le footer s'affiche sur toutes les pages */}
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-100 flex flex-col">
-          <Header />
+        <Layout>
+          <Routes>
+            {/* Redirection par défaut */}
+            <Route path="/" element={<Navigate to="/home" replace />} />
 
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<Navigate to="/home" replace />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route
-                path="/home"
-                element={
-                  <PrivateRoute>
-                    <Home />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/actors"
-                element={
-                  <PrivateRoute>
-                    <Actors />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/filmmakers"
-                element={
-                  <PrivateRoute>
-                    <Filmmakers />
-                  </PrivateRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/home" replace />} />
-            </Routes>
-          </main>
+            {/* Routes publiques */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          <Footer />
-        </div>
+            {/* Routes protégées */}
+            <Route
+              path="/home"
+              element={
+                <PrivateRoute>
+                  <Home />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/actors"
+              element={
+                <PrivateRoute>
+                  <Actors />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/filmmakers"
+              element={
+                <PrivateRoute>
+                  <Filmmakers />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Redirection en cas d’erreur de route */}
+            <Route path="*" element={<Navigate to="/home" replace />} />
+          </Routes>
+        </Layout>
       </Router>
     </AuthProvider>
   );
