@@ -34,7 +34,9 @@ export default function Login() {
         onSubmit={handleSubmit}
         className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md flex flex-col gap-4"
       >
-        <h2 className="text-2xl font-bold text-center text-gray-800">Connexion</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-800">
+          Connexion
+        </h2>
         <Input
           label="Email"
           type="email"
