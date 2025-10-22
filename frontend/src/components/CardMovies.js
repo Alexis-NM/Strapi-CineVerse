@@ -18,14 +18,20 @@ function formatViews(n) {
   return `${num}`;
 }
 
-export default function CardMovies({ movie }) {
+export default function CardMovies({ movie, onClick }) {
   const poster = movie.poster || movie.poster_url || '';
   const title = movie.title || 'Untitled';
   const duration = movie.duration_minutes ? formatDuration(movie.duration_minutes) : null;
   const views = movie.popularity ? formatViews(movie.popularity) : '0';
 
   return (
-    <article className="relative rounded-2xl shadow-lg overflow-hidden bg-[#1f1f1f] px-0">
+    <article
+      onClick={() => { console.log('Card clicked:', movie.id || movie.title); onClick && onClick(movie); }}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(e) => onClick && (e.key === 'Enter' || e.key === ' ') && onClick(movie)}
+      className="relative rounded-2xl shadow-lg overflow-hidden bg-[#1f1f1f] px-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500"
+    >
       <div className="bg-[#1f1f1f] p-0">
         {poster ? (
           <img

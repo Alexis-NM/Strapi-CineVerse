@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { fetchMovies } from "../api/api";
 import CardMovies from "../components/CardMovies";
+import MovieOverlay from "../components/MovieOverlay";
 // Header et Footer sont fournis par App.js pour éviter la duplication entre les pages
 
 function Home() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -26,9 +28,18 @@ function Home() {
     return () => (mounted = false);
   }, []);
 
+  useEffect(() => {
+    if (selectedMovie) console.log('selectedMovie set:', selectedMovie.id || selectedMovie.title || selectedMovie);
+  }, [selectedMovie]);
+
   return (
     <div className="bg-[#0b0b0b] min-h-screen text-white">
       <main className="p-8 max-w-7xl mx-auto">
+        {/* overlay rendu ici pour qu'il s'insère entre le header et le titre Discover */}
+        {selectedMovie ? (
+          <MovieOverlay movie={selectedMovie} onClose={() => setSelectedMovie(null)} />
+        ) : null}
+
         <h1 className="text-3xl font-bold mb-4">Discover</h1>
 
         {loading ? (
@@ -38,11 +49,26 @@ function Home() {
         ) : movies.length === 0 ? (
           <p className="text-gray-400 text-center mt-10">No movies available.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-            {movies.map((movie) => (
-              <CardMovies key={movie.id} movie={movie} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
+              {movies.map((movie) => (
+                <CardMovies
+                  key={movie.id}
+                  movie={movie}
+                  onClick={(m) => {
+                    // Scroll au top de la page quand on ouvre l'overlay
+                    try {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } catch (e) {
+                      window.scrollTo(0, 0);
+                    }
+                    setSelectedMovie(m);
+                  }}
+                />
+              ))}
+            </div>
+
+          </>
         )}
       </main>
     </div>
