@@ -16,7 +16,6 @@ async function apiFetch(path, options = {}) {
     ...(options.body ? { "Content-Type": "application/json" } : {}),
     ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
   };
-
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
   const text = await res.text();
 
@@ -62,10 +61,15 @@ export async function fetchActors() {
       `&populate[profil_picture][fields][0]=url` +
       `&pagination[pageSize]=1000`;
 
+    console.log("📡 Fetching actors from:", `${API_URL}${url}`);
+
     const data = await apiFetch(url);
+    // Décommentez la ligne suivante en cas de debug profond :
+    // console.log("🎥 Data Strapi complète (acteurs):", JSON.stringify(data, null, 2));
+
     const items = data.data || [];
 
-    return items.map((item) => {
+    const actors = items.map((item) => {
       const attr = item.attributes || {};
 
       const actedIn =
@@ -92,6 +96,9 @@ export async function fetchActors() {
         acted_in: actedIn,
       };
     });
+
+    console.log(`✅ ${actors.length} acteurs récupérés`);
+    return actors;
   } catch (err) {
     console.error("❌ Erreur API Strapi (acteurs):", err);
     return [];
@@ -109,10 +116,15 @@ export async function fetchFilmmakers() {
       `&populate[profil_picture][fields][0]=url` +
       `&pagination[pageSize]=1000`;
 
+    console.log("📡 Fetching filmmakers from:", `${API_URL}${url}`);
+
     const data = await apiFetch(url);
+    // Décommentez la ligne suivante en cas de debug profond :
+    // console.log("🎬 Data Strapi complète (réalisateurs):", JSON.stringify(data, null, 2));
+
     const items = data.data || [];
 
-    return items.map((item) => {
+    const filmmakers = items.map((item) => {
       const attr = item.attributes || {};
 
       const directed =
@@ -139,6 +151,9 @@ export async function fetchFilmmakers() {
         directed,
       };
     });
+
+    console.log(`✅ ${filmmakers.length} réalisateurs récupérés`);
+    return filmmakers;
   } catch (err) {
     console.error("❌ Erreur API Strapi (réalisateurs):", err);
     return [];
