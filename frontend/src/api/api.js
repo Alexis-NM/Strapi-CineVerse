@@ -1,14 +1,21 @@
 const API_URL = "http://localhost:1337/api";
 
-// --- Helper qui injecte automatiquement le JWT, gère erreurs et JSON ---
+// -- Utilitaire : remet en URL absolue les médias Strapi si besoin --
+function toAbsoluteUrl(url) {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `http://localhost:1337${url}`;
+}
+
+// --- Helper: fetch avec JWT + gestion JSON + erreurs ---
 async function apiFetch(path, options = {}) {
   const jwt = localStorage.getItem("jwt");
+
   const headers = {
     ...(options.headers || {}),
     ...(options.body ? { "Content-Type": "application/json" } : {}),
     ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
   };
-
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
   const text = await res.text();
 
@@ -57,10 +64,8 @@ export async function fetchActors() {
     console.log("📡 Fetching actors from:", `${API_URL}${url}`);
 
     const data = await apiFetch(url);
-    console.log(
-      "🎥 Data Strapi complète (acteurs):",
-      JSON.stringify(data, null, 2)
-    );
+    // Décommentez la ligne suivante en cas de debug profond :
+    // console.log("🎥 Data Strapi complète (acteurs):", JSON.stringify(data, null, 2));
 
     const items = data.data || [];
 
@@ -74,9 +79,9 @@ export async function fetchActors() {
           release_date: movie.attributes?.release_date ?? null,
         })) || [];
 
-      const pictureUrl = attr.profil_picture?.data?.attributes?.url
-        ? `http://localhost:1337${attr.profil_picture.data.attributes.url}`
-        : attr.profile_url || null;
+      const pictureUrl = toAbsoluteUrl(
+        attr.profil_picture?.data?.attributes?.url || attr.profile_url
+      );
 
       return {
         id: item.id,
@@ -114,10 +119,8 @@ export async function fetchFilmmakers() {
     console.log("📡 Fetching filmmakers from:", `${API_URL}${url}`);
 
     const data = await apiFetch(url);
-    console.log(
-      "🎬 Data Strapi complète (réalisateurs):",
-      JSON.stringify(data, null, 2)
-    );
+    // Décommentez la ligne suivante en cas de debug profond :
+    // console.log("🎬 Data Strapi complète (réalisateurs):", JSON.stringify(data, null, 2));
 
     const items = data.data || [];
 
@@ -131,9 +134,9 @@ export async function fetchFilmmakers() {
           release_date: movie.attributes?.release_date ?? null,
         })) || [];
 
-      const pictureUrl = attr.profil_picture?.data?.attributes?.url
-        ? `http://localhost:1337${attr.profil_picture.data.attributes.url}`
-        : attr.profile_url || null;
+      const pictureUrl = toAbsoluteUrl(
+        attr.profil_picture?.data?.attributes?.url || attr.profile_url
+      );
 
       return {
         id: item.id,

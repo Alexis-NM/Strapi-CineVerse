@@ -1,44 +1,79 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchMovies } from "../api/api";
+import CardMovies from "../components/CardMovies";
+import MovieOverlay from "../components/MovieOverlay";
 
 function Home() {
   const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
   useEffect(() => {
+    let mounted = true;
     async function loadMovies() {
-      const data = await fetchMovies();
-      setMovies(data);
+      try {
+        setLoading(true);
+        const data = await fetchMovies();
+        if (mounted) setMovies(data || []);
+      } catch (err) {
+        console.error(err);
+        if (mounted) setError(err.message || "Failed to load movies");
+      } finally {
+        if (mounted) setLoading(false);
+      }
     }
     loadMovies();
+    return () => (mounted = false);
   }, []);
 
-  return (
-    <div className="bg-[#141414] min-h-screen text-white">
+  useEffect(() => {
+    if (selectedMovie)
+      console.log(
+        "selectedMovie set:",
+        selectedMovie.id || selectedMovie.title || selectedMovie
+      );
+  }, [selectedMovie]);
 
-      <main className="p-8">
-        {movies.length === 0 ? (
+  return (
+    <div className="bg-[#0b0b0b] min-h-screen text-white">
+      <main className="p-8 max-w-7xl mx-auto">
+        {selectedMovie ? (
+          <MovieOverlay
+            movie={selectedMovie}
+            onClose={() => setSelectedMovie(null)}
+          />
+        ) : null}
+
+        <h1 className="text-3xl font-bold mb-4">Discover</h1>
+
+        {loading ? (
+          <p className="text-gray-400 text-center mt-10">Loading movies...</p>
+        ) : error ? (
+          <p className="text-red-400 text-center mt-10">{error}</p>
+        ) : movies.length === 0 ? (
           <p className="text-gray-400 text-center mt-10">
-            Chargement des films...
+            No movies available.
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-8">
-            {movies.map((movie) => (
-              <div
-                key={movie.id}
-                className="p-4 bg-gray-800 rounded-2xl shadow hover:shadow-lg transition"
-              >
-                <h2 className="text-xl font-semibold mb-2 text-white">
-                  {movie.title}
-                </h2>
-                <p className="text-gray-400 text-sm mb-1">
-                   Réalisateur : {movie.director}
-                </p>
-                <p className="text-gray-500 text-sm">
-                   Sortie : {movie.releaseDate}
-                </p>
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
+              {movies.map((movie) => (
+                <CardMovies
+                  key={movie.id}
+                  movie={movie}
+                  onClick={(m) => {
+                    try {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    } catch (e) {
+                      window.scrollTo(0, 0);
+                    }
+                    setSelectedMovie(m);
+                  }}
+                />
+              ))}
+            </div>
+          </>
         )}
       </main>
     </div>
