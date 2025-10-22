@@ -10,21 +10,30 @@ export default function ActorModal({ actor, movies, onClose }) {
   );
 
   return (
-    <div className="w-full bg-[#222] mt-4 p-4 rounded-xl text-gray-300">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-xl font-semibold text-white">
-          Détails de {actor.firstname} {actor.name}
+    <div className="text-gray-300">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold text-white">
+          {actor.firstname} {actor.name}
         </h2>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white transition"
+          className="text-gray-400 hover:text-white text-xl transition"
         >
           ✕
         </button>
       </div>
 
-      <div>
-        <h3 className="font-semibold text-white mb-2">Films joués :</h3>
+      {actor.biography && (
+        <div className="mb-6 max-h-48 overflow-y-auto pr-2">
+          <h3 className="font-semibold text-white mb-2">🧾 Biographie :</h3>
+          <p className="text-sm text-gray-300 text-justify leading-relaxed">
+            {actor.biography}
+          </p>
+        </div>
+      )}
+
+      <div className="mb-4">
+        <h3 className="font-semibold text-white mb-2">🎬 Films :</h3>
         {actedIn.length > 0 ? (
           <ul className="list-disc list-inside space-y-1">
             {actedIn.map((movie) => (
@@ -36,8 +45,8 @@ export default function ActorModal({ actor, movies, onClose }) {
         )}
       </div>
 
-      <div className="mt-4">
-        <h3 className="font-semibold text-white mb-2">Réalisations :</h3>
+      <div>
+        <h3 className="font-semibold text-white mb-2">🎞️ Réalisations :</h3>
         {directed.length > 0 ? (
           <ul className="list-disc list-inside space-y-1">
             {directed.map((movie) => (
