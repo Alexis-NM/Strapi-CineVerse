@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchFilmmakers } from "../api/api";
 import PersonCard from "../components/PersonCard";
-import Pagination from "../components/Pagination"; // 👈 import du composant pagination
+import Pagination from "../components/Pagination";
 
 export default function Filmmakers() {
   const [filmmakers, setFilmmakers] = useState([]);
@@ -9,7 +9,7 @@ export default function Filmmakers() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9; // 👉 nombre de réalisateurs affichés par page
+  const itemsPerPage = 9;
 
   useEffect(() => {
     const loadFilmmakers = async () => {
