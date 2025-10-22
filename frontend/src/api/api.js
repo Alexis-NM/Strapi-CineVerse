@@ -13,7 +13,6 @@ export async function fetchMovies() {
   }
 }
 
-
 export async function fetchActors() {
   try {
     const url = `${API_URL}/personalities?filters[is_actor][$eq]=true&populate[acted_in][populate]=poster&pagination[pageSize]=1000`;
