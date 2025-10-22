@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { fetchMovies } from "../api/api";
-import Footer from "../components/Footer";
-import Header from "../components/Header";
 
 function Home() {
   const [movies, setMovies] = useState([]);

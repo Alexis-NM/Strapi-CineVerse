@@ -2,7 +2,7 @@ import React from "react";
 
 function Footer() {
   return (
-    <footer className="bg-[#141414] text-gray-300 mt-12">
+    <footer className="bg-[#141414] text-gray-300">
       <div className="flex justify-start px-8 py-4">
         <h1 className="text-2xl font-extrabold text-[#e50000]">
           Cineverse
