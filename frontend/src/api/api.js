@@ -66,7 +66,7 @@ export async function fetchActors() {
 
 export async function fetchFilmmakers() {
   try {
-    const url = `${API_URL}/personalities?filters[is_filmmaker][$eq]=true&populate=directed`;
+    const url = `${API_URL}/personalities?filters[is_filmmaker][$eq]=true&populate=directed&pagination[pageSize]=1000`;
     console.log("📡 Fetching filmmakers from:", url);
 
     const response = await fetch(url);
