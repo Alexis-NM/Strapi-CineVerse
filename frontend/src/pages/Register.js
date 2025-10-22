@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { motion } from "framer-motion";
 
 export default function Register() {
   const { register } = useAuth(); // 👈 On récupère la fonction du contexte
@@ -37,12 +38,20 @@ export default function Register() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full min-h-screen flex items-center justify-center bg-gray-50">
-      <h1 className="text-6xl font-extrabold tracking-wider text-[#e50000] mb-2">
+      <motion.h1 
+        className="text-6xl font-extrabold tracking-wider text-[#e50000] mb-2"
+        initial={{ opacity: 0, y: -20 }} // Démarre un peu plus haut et invisible
+        animate={{ opacity: 1, y: 0 }} // Devient visible et descend à sa place
+        transition={{ duration: 0.6, ease: "easeOut" }} // Durée + courbe fluide
+      >
         Cineverse
-      </h1>
-      <form
+      </motion.h1>
+      <motion.form
         onSubmit={handleSubmit}
         className="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md flex flex-col gap-4"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
       >
         <h2 className="text-3xl text-gray-300 font-bold text-center mb-4">Create an account</h2>
         <p className="text-center text-gray-300 mb-4">Join us in a few sec !</p>
@@ -60,7 +69,7 @@ export default function Register() {
             Log in here !
           </a>
         </p>
-      </form>
+      </motion.form>
     </div>
   );
 }
