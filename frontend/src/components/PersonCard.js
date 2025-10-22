@@ -11,33 +11,23 @@ export default function PersonCard({ person, type }) {
     setIsOpen((prev) => !prev);
   };
 
-  // 🧩 On fusionne les films joués et réalisés si la personne fait les deux
   let movies = [];
 
   if (type === "actor") {
     movies = person.acted_in || [];
   } else if (type === "filmmaker") {
     movies = person.directed || [];
-  }
-
-  // 🔹 Si la personne a les deux rôles
-  if (person.is_actor && person.is_filmmaker) {
+  } else if (person.is_actor && person.is_filmmaker) {
     const actedIn = person.acted_in || [];
     const directed = person.directed || [];
-
-    // on fusionne sans doublons
-    const uniqueMovies = [
+    movies = [
       ...actedIn,
-      ...directed.filter(
-        (d) => !actedIn.some((a) => a.id === d.id)
-      ),
+      ...directed.filter((d) => !actedIn.some((a) => a.id === d.id)),
     ];
-    movies = uniqueMovies;
   }
 
   return (
     <div className="relative">
-      {/* --- Overlay global flouté --- */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -51,14 +41,13 @@ export default function PersonCard({ person, type }) {
         )}
       </AnimatePresence>
 
-      {/* --- La carte --- */}
       <div
         className={`bg-[#1a1a1a] rounded-2xl shadow-md p-4 flex items-center gap-6 w-[360px] text-gray-200 cursor-pointer transition-transform duration-300 hover:scale-105 relative ${
           isOpen ? "z-50" : "z-10"
         }`}
         onClick={toggleOpen}
       >
-        {/* Image ou icône de remplacement */}
+
         <div className="w-28 h-40 rounded-xl shadow flex items-center justify-center bg-gray-800 overflow-hidden">
           {person.profile_url ? (
             <img
@@ -71,7 +60,6 @@ export default function PersonCard({ person, type }) {
           )}
         </div>
 
-        {/* Infos principales */}
         <div className="flex flex-col justify-center gap-2">
           <h3 className="text-xl font-semibold text-white">
             {person.firstname} {person.name}
@@ -87,7 +75,7 @@ export default function PersonCard({ person, type }) {
         </div>
       </div>
 
-      {/* --- Modale sous la card --- */}
+      {/* Modale */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -100,8 +88,8 @@ export default function PersonCard({ person, type }) {
             <div className="bg-[#222] rounded-2xl mt-3 p-6 shadow-lg">
               <PersonModal
                 person={person}
-                movies={movies}
-                type={type}
+                movies={movies}  
+                type={type}       
                 onClose={() => setIsOpen(false)}
               />
             </div>

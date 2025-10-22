@@ -25,6 +25,8 @@ export async function fetchActors() {
     }
 
     const data = await response.json();
+      console.log("🎥 Data Strapi complète (acteurs):", JSON.stringify(data, null, 2));
+
     const items = data.data || [];
 
     const actors = items.map((item) => {
@@ -45,11 +47,12 @@ export async function fetchActors() {
           : attr.profile_url || null,
 
         acted_in:
-          attr.acted_in?.data?.map((movie) => ({
-            id: movie.id,
-            title: movie.attributes?.title || "Titre inconnu",
-            release_date: movie.attributes?.release_date || null,
-          })) || [],
+        attr.acted_in?.map((movie) => ({
+          id: movie.id,
+          title: movie.title || "Titre inconnu",
+          release_date: movie.release_date || null,
+        })) || [],
+
       };
     });
 
@@ -61,10 +64,9 @@ export async function fetchActors() {
   }
 }
 
-
 export async function fetchFilmmakers() {
   try {
-    const url = `${API_URL}/personalities?filters[is_filmmaker][$eq]=true&populate[directed][fields][0]=title&populate[directed][fields][1]=release_date&pagination[pageSize]=1000`;
+    const url = `${API_URL}/personalities?filters[is_filmmaker][$eq]=true&populate=directed&pagination[pageSize]=1000`;
     console.log("📡 Fetching filmmakers from:", url);
 
     const response = await fetch(url);
@@ -74,6 +76,8 @@ export async function fetchFilmmakers() {
     }
 
     const data = await response.json();
+    console.log("🎬 Data Strapi complète (réalisateurs):", JSON.stringify(data, null, 2));
+
     const items = data.data || [];
 
     const filmmakers = items.map((item) => {
@@ -94,10 +98,10 @@ export async function fetchFilmmakers() {
           : attr.profile_url || null,
 
         directed:
-          attr.directed?.data?.map((movie) => ({
+          attr.directed?.map((movie) => ({
             id: movie.id,
-            title: movie.attributes?.title || "Titre inconnu",
-            release_date: movie.attributes?.release_date || null,
+            title: movie.title || "Titre inconnu",
+            release_date: movie.release_date || null,
           })) || [],
       };
     });
@@ -109,4 +113,5 @@ export async function fetchFilmmakers() {
     return [];
   }
 }
+
 

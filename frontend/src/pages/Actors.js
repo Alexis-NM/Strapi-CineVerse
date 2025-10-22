@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchActors } from "../api/api";
-import PersonCard from "../components/PersonCard"; // 🔹 nouveau nom
+import PersonCard from "../components/PersonCard"; 
 
 export default function Actors() {
   const [actors, setActors] = useState([]);
