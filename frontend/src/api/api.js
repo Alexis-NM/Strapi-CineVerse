@@ -1,14 +1,146 @@
+const API_URL = "http://localhost:1337/api";
 
-const API_URL = "http://localhost:1337/api/movies";
+// -- Utilitaire : remet en URL absolue les médias Strapi si besoin --
+function toAbsoluteUrl(url) {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `http://localhost:1337${url}`;
+}
 
+// --- Helper: fetch avec JWT + gestion JSON + erreurs ---
+async function apiFetch(path, options = {}) {
+  const jwt = localStorage.getItem("jwt");
+
+  const headers = {
+    ...(options.headers || {}),
+    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+  };
+
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const text = await res.text();
+
+  let json;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    json = text;
+  }
+
+  if (!res.ok) {
+    console.error(`[API] ${res.status} ${path} ->`, json);
+    throw new Error(
+      `Erreur API ${res.status}: ${
+        typeof json === "string"
+          ? json
+          : json?.error?.message || "Requête échouée"
+      }`
+    );
+  }
+  return json ?? {};
+}
+
+// --- Movies ---
 export async function fetchMovies() {
   try {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error("Erreur lors du chargement des films");
-    const data = await response.json();
-    return data.data; 
+    const data = await apiFetch(`/movies?populate=*&pagination[pageSize]=1000`);
+    return data.data || [];
   } catch (err) {
-    console.error("❌ Erreur API Strapi:", err);
+    console.error("❌ Erreur API Strapi (films):", err);
     throw err;
+  }
+}
+
+// --- Actors ---
+export async function fetchActors() {
+  try {
+    const url =
+      `/personalities` +
+      `?filters[is_actor][$eq]=true` +
+      `&populate[acted_in][fields][0]=title` +
+      `&populate[acted_in][fields][1]=release_date` +
+      `&populate[profil_picture][fields][0]=url` +
+      `&pagination[pageSize]=1000`;
+
+    const data = await apiFetch(url);
+    const items = data.data || [];
+
+    return items.map((item) => {
+      const attr = item.attributes || {};
+
+      const actedIn =
+        attr.acted_in?.data?.map((movie) => ({
+          id: movie.id,
+          title: movie.attributes?.title ?? "Titre inconnu",
+          release_date: movie.attributes?.release_date ?? null,
+        })) || [];
+
+      const pictureUrl = toAbsoluteUrl(
+        attr.profil_picture?.data?.attributes?.url || attr.profile_url
+      );
+
+      return {
+        id: item.id,
+        firstname: attr.firstname,
+        name: attr.name,
+        birthdate: attr.birthdate,
+        biography: attr.biography,
+        gender: attr.gender,
+        is_actor: attr.is_actor,
+        is_filmmaker: attr.is_filmmaker,
+        profile_url: pictureUrl,
+        acted_in: actedIn,
+      };
+    });
+  } catch (err) {
+    console.error("❌ Erreur API Strapi (acteurs):", err);
+    return [];
+  }
+}
+
+// --- Filmmakers ---
+export async function fetchFilmmakers() {
+  try {
+    const url =
+      `/personalities` +
+      `?filters[is_filmmaker][$eq]=true` +
+      `&populate[directed][fields][0]=title` +
+      `&populate[directed][fields][1]=release_date` +
+      `&populate[profil_picture][fields][0]=url` +
+      `&pagination[pageSize]=1000`;
+
+    const data = await apiFetch(url);
+    const items = data.data || [];
+
+    return items.map((item) => {
+      const attr = item.attributes || {};
+
+      const directed =
+        attr.directed?.data?.map((movie) => ({
+          id: movie.id,
+          title: movie.attributes?.title ?? "Titre inconnu",
+          release_date: movie.attributes?.release_date ?? null,
+        })) || [];
+
+      const pictureUrl = toAbsoluteUrl(
+        attr.profil_picture?.data?.attributes?.url || attr.profile_url
+      );
+
+      return {
+        id: item.id,
+        firstname: attr.firstname,
+        name: attr.name,
+        birthdate: attr.birthdate,
+        biography: attr.biography,
+        gender: attr.gender,
+        is_actor: attr.is_actor,
+        is_filmmaker: attr.is_filmmaker,
+        profile_url: pictureUrl,
+        directed,
+      };
+    });
+  } catch (err) {
+    console.error("❌ Erreur API Strapi (réalisateurs):", err);
+    return [];
   }
 }
