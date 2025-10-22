@@ -1,36 +1,82 @@
 const API_URL = "http://localhost:1337/api";
 
+// --- Helper qui injecte automatiquement le JWT, gère erreurs et JSON ---
+async function apiFetch(path, options = {}) {
+  const jwt = localStorage.getItem("jwt");
+  const headers = {
+    ...(options.headers || {}),
+    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+  };
 
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const text = await res.text();
+
+  let json;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    json = text;
+  }
+
+  if (!res.ok) {
+    console.error(`[API] ${res.status} ${path} ->`, json);
+    throw new Error(
+      `Erreur API ${res.status}: ${
+        typeof json === "string"
+          ? json
+          : json?.error?.message || "Requête échouée"
+      }`
+    );
+  }
+  return json ?? {};
+}
+
+// --- Movies ---
 export async function fetchMovies() {
   try {
-    const response = await fetch(`${API_URL}/movies?populate=*`);
-    if (!response.ok) throw new Error("Erreur lors du chargement des films");
-    const data = await response.json();
-    return data.data;
+    const data = await apiFetch(`/movies?populate=*&pagination[pageSize]=1000`);
+    return data.data || [];
   } catch (err) {
     console.error("❌ Erreur API Strapi (films):", err);
     throw err;
   }
 }
 
+// --- Actors ---
 export async function fetchActors() {
   try {
-    const url = `${API_URL}/personalities?filters[is_actor][$eq]=true&populate[acted_in][fields][0]=title&populate[acted_in][fields][1]=release_date&pagination[pageSize]=1000`;
-    console.log("📡 Fetching actors from:", url);
+    const url =
+      `/personalities` +
+      `?filters[is_actor][$eq]=true` +
+      `&populate[acted_in][fields][0]=title` +
+      `&populate[acted_in][fields][1]=release_date` +
+      `&populate[profil_picture][fields][0]=url` +
+      `&pagination[pageSize]=1000`;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Erreur HTTP ${response.status} - ${text}`);
-    }
+    console.log("📡 Fetching actors from:", `${API_URL}${url}`);
 
-    const data = await response.json();
-      console.log("🎥 Data Strapi complète (acteurs):", JSON.stringify(data, null, 2));
+    const data = await apiFetch(url);
+    console.log(
+      "🎥 Data Strapi complète (acteurs):",
+      JSON.stringify(data, null, 2)
+    );
 
     const items = data.data || [];
 
     const actors = items.map((item) => {
-      const attr = item.attributes || item;
+      const attr = item.attributes || {};
+
+      const actedIn =
+        attr.acted_in?.data?.map((movie) => ({
+          id: movie.id,
+          title: movie.attributes?.title ?? "Titre inconnu",
+          release_date: movie.attributes?.release_date ?? null,
+        })) || [];
+
+      const pictureUrl = attr.profil_picture?.data?.attributes?.url
+        ? `http://localhost:1337${attr.profil_picture.data.attributes.url}`
+        : attr.profile_url || null;
 
       return {
         id: item.id,
@@ -41,18 +87,8 @@ export async function fetchActors() {
         gender: attr.gender,
         is_actor: attr.is_actor,
         is_filmmaker: attr.is_filmmaker,
-
-        profile_url: attr.profil_picture?.data
-          ? `http://localhost:1337${attr.profil_picture.data.attributes.url}`
-          : attr.profile_url || null,
-
-        acted_in:
-        attr.acted_in?.map((movie) => ({
-          id: movie.id,
-          title: movie.title || "Titre inconnu",
-          release_date: movie.release_date || null,
-        })) || [],
-
+        profile_url: pictureUrl,
+        acted_in: actedIn,
       };
     });
 
@@ -64,24 +100,40 @@ export async function fetchActors() {
   }
 }
 
+// --- Filmmakers ---
 export async function fetchFilmmakers() {
   try {
-    const url = `${API_URL}/personalities?filters[is_filmmaker][$eq]=true&populate=directed&pagination[pageSize]=1000`;
-    console.log("📡 Fetching filmmakers from:", url);
+    const url =
+      `/personalities` +
+      `?filters[is_filmmaker][$eq]=true` +
+      `&populate[directed][fields][0]=title` +
+      `&populate[directed][fields][1]=release_date` +
+      `&populate[profil_picture][fields][0]=url` +
+      `&pagination[pageSize]=1000`;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Erreur HTTP ${response.status} - ${text}`);
-    }
+    console.log("📡 Fetching filmmakers from:", `${API_URL}${url}`);
 
-    const data = await response.json();
-    console.log("🎬 Data Strapi complète (réalisateurs):", JSON.stringify(data, null, 2));
+    const data = await apiFetch(url);
+    console.log(
+      "🎬 Data Strapi complète (réalisateurs):",
+      JSON.stringify(data, null, 2)
+    );
 
     const items = data.data || [];
 
     const filmmakers = items.map((item) => {
-      const attr = item.attributes || item;
+      const attr = item.attributes || {};
+
+      const directed =
+        attr.directed?.data?.map((movie) => ({
+          id: movie.id,
+          title: movie.attributes?.title ?? "Titre inconnu",
+          release_date: movie.attributes?.release_date ?? null,
+        })) || [];
+
+      const pictureUrl = attr.profil_picture?.data?.attributes?.url
+        ? `http://localhost:1337${attr.profil_picture.data.attributes.url}`
+        : attr.profile_url || null;
 
       return {
         id: item.id,
@@ -92,17 +144,8 @@ export async function fetchFilmmakers() {
         gender: attr.gender,
         is_actor: attr.is_actor,
         is_filmmaker: attr.is_filmmaker,
-
-        profile_url: attr.profil_picture?.data
-          ? `http://localhost:1337${attr.profil_picture.data.attributes.url}`
-          : attr.profile_url || null,
-
-        directed:
-          attr.directed?.map((movie) => ({
-            id: movie.id,
-            title: movie.title || "Titre inconnu",
-            release_date: movie.release_date || null,
-          })) || [],
+        profile_url: pictureUrl,
+        directed,
       };
     });
 
@@ -113,5 +156,3 @@ export async function fetchFilmmakers() {
     return [];
   }
 }
-
-

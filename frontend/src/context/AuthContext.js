@@ -5,18 +5,41 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Charger les infos sauvegardées au démarrage
+  // Vérifier la session au démarrage avec /api/me
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("jwt");
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
+
+    if (!storedToken) {
+      setLoading(false);
+      return;
     }
+
+    // Appel à /users/me pour valider le token et récupérer le profil
+    fetch("http://localhost:1337/api/users/me", {
+      headers: {
+        Authorization: `Bearer ${storedToken}`,
+      },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Session invalide");
+        const me = await res.json();
+        setUser(me);
+        setToken(storedToken);
+        localStorage.setItem("user", JSON.stringify(me));
+      })
+      .catch(() => {
+        // Token invalide → nettoyage
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("jwt");
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  // Connexion utilisateur avec Strapi (port 1337)
+  // Connexion utilisateur
   const login = async (email, password) => {
     const response = await fetch("http://localhost:1337/api/auth/local", {
       method: "POST",
@@ -26,33 +49,50 @@ export function AuthProvider({ children }) {
 
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.error?.message || "Erreur de connexion");
+    if (!response.ok)
+      throw new Error(data.error?.message || "Erreur de connexion");
 
-    setUser(data.user);
     setToken(data.jwt);
-    localStorage.setItem("user", JSON.stringify(data.user));
     localStorage.setItem("jwt", data.jwt);
+
+    // Récupération du profil immédiatement
+    const meRes = await fetch("http://localhost:1337/api/users/me", {
+      headers: { Authorization: `Bearer ${data.jwt}` },
+    });
+    const me = await meRes.json();
+
+    setUser(me);
+    localStorage.setItem("user", JSON.stringify(me));
   };
 
-  // Création de compte sur Strapi (port 1337)
+  // Inscription
   const register = async (username, email, password) => {
-    const response = await fetch("http://localhost:1337/api/auth/local/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
-    });
+    const response = await fetch(
+      "http://localhost:1337/api/auth/local/register",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      }
+    );
 
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.error?.message || "Erreur d’inscription");
+    if (!response.ok)
+      throw new Error(data.error?.message || "Erreur d’inscription");
 
-    setUser(data.user);
     setToken(data.jwt);
-    localStorage.setItem("user", JSON.stringify(data.user));
     localStorage.setItem("jwt", data.jwt);
+
+    const meRes = await fetch("http://localhost:1337/api/users/me", {
+      headers: { Authorization: `Bearer ${data.jwt}` },
+    });
+    const me = await meRes.json();
+
+    setUser(me);
+    localStorage.setItem("user", JSON.stringify(me));
   };
 
-  // Déconnexion
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -61,13 +101,14 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, login, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-// Hook pratique pour consommer le contexte
 export function useAuth() {
   return useContext(AuthContext);
 }
