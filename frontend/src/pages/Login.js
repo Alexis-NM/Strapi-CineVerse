@@ -35,6 +35,8 @@ export default function Login() {
     navigate(from, { replace: true }); // redirection après fermeture
   };
 
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
+
   return (
     
     <div className="flex flex-col items-center justify-center w-full min-h-screen flex items-center justify-center bg-gray-50">
@@ -69,7 +71,7 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
         {error && <p className="text-red-500 text-sm">{error}</p>}
-        <Button type="submit">Log in</Button>
+        <Button type="submit" disabled={!isFormValid}>Log in</Button>
         <p className="text-sm text-center text-gray-300">
           New here ?{" "}
           <Link to="/register" className="text-[#e50000] hover:underline">

@@ -40,6 +40,12 @@ const handleCloseModal = () => {
   window.location.href = "/login"; // redirection vers page de connexion
 };
 
+const isFormValid =
+  username.trim() !== "" &&
+  email.trim() !== "" &&
+  password.trim() !== "" &&
+  confirmPassword.trim() !== "" &&
+  password === confirmPassword;
 
   return (
     <div className="flex flex-col items-center justify-center w-full min-h-screen flex items-center justify-center bg-gray-50">
@@ -66,7 +72,7 @@ const handleCloseModal = () => {
         <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <Input label="Confirm Password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
 
-        <Button type="submit">Create my account</Button>
+        <Button type="submit" disabled={!isFormValid}>Create my account</Button>
 
         <p className="text-sm text-center text-gray-300">
           Already have an account ?{" "}
