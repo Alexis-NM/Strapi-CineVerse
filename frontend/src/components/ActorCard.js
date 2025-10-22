@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ActorModal from "./ActorModal";
+import { MdOutlineNoPhotography } from "react-icons/md";
 
 export default function ActorCard({ actor }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,14 +34,20 @@ export default function ActorCard({ actor }) {
         }`}
         onClick={toggleOpen}
       >
-        <img
-          src={
-            actor.profile_url ||
-            "https://via.placeholder.com/150x200?text=No+Image"
-          }
-          alt={`${actor.firstname || ""} ${actor.name}`}
-          className="w-28 h-40 object-cover rounded-xl shadow"
-        />
+        <div className="w-28 h-40 rounded-xl shadow flex items-center justify-center bg-gray-800 overflow-hidden">
+          {actor.profile_url ? (
+            <img
+              src={actor.profile_url}
+              alt={`${actor.firstname || ""} ${actor.name}`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <MdOutlineNoPhotography className="text-gray-500 text-5xl" />
+          )}
+        </div>
+
+
+
         <div className="flex flex-col justify-center gap-2">
           <h3 className="text-xl font-semibold text-white">
             {actor.firstname} {actor.name}

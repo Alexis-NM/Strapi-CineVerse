@@ -41,8 +41,9 @@ export async function fetchActors() {
         is_filmmaker: attr.is_filmmaker,
 
         profile_url: attr.profil_picture?.data
-          ? `http://localhost:1337${attr.profil_picture.data.attributes.url}`
-          : attr.profile_url || "https://via.placeholder.com/150x200?text=No+Image",
+        ? `http://localhost:1337${attr.profil_picture.data.attributes.url}`
+        : attr.profile_url || null,
+
 
         acted_in:
           attr.acted_in?.data?.map((movie) => {
