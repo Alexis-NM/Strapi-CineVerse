@@ -1,15 +1,39 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import ActorModal from "./ActorModal";
+import PersonModal from "./PersonModal";
 import { MdOutlineNoPhotography } from "react-icons/md";
 
-export default function ActorCard({ actor }) {
+export default function PersonCard({ person, type }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleOpen = (e) => {
     e.stopPropagation();
     setIsOpen((prev) => !prev);
   };
+
+  // 🧩 On fusionne les films joués et réalisés si la personne fait les deux
+  let movies = [];
+
+  if (type === "actor") {
+    movies = person.acted_in || [];
+  } else if (type === "filmmaker") {
+    movies = person.directed || [];
+  }
+
+  // 🔹 Si la personne a les deux rôles
+  if (person.is_actor && person.is_filmmaker) {
+    const actedIn = person.acted_in || [];
+    const directed = person.directed || [];
+
+    // on fusionne sans doublons
+    const uniqueMovies = [
+      ...actedIn,
+      ...directed.filter(
+        (d) => !actedIn.some((a) => a.id === d.id)
+      ),
+    ];
+    movies = uniqueMovies;
+  }
 
   return (
     <div className="relative">
@@ -34,11 +58,12 @@ export default function ActorCard({ actor }) {
         }`}
         onClick={toggleOpen}
       >
+        {/* Image ou icône de remplacement */}
         <div className="w-28 h-40 rounded-xl shadow flex items-center justify-center bg-gray-800 overflow-hidden">
-          {actor.profile_url ? (
+          {person.profile_url ? (
             <img
-              src={actor.profile_url}
-              alt={`${actor.firstname || ""} ${actor.name}`}
+              src={person.profile_url}
+              alt={`${person.firstname || ""} ${person.name}`}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -46,19 +71,18 @@ export default function ActorCard({ actor }) {
           )}
         </div>
 
-
-
+        {/* Infos principales */}
         <div className="flex flex-col justify-center gap-2">
           <h3 className="text-xl font-semibold text-white">
-            {actor.firstname} {actor.name}
+            {person.firstname} {person.name}
           </h3>
-          {actor.birthdate && (
+          {person.birthdate && (
             <p className="text-sm text-gray-400">
-              🎂 {new Date(actor.birthdate).toLocaleDateString("fr-FR")}
+              🎂 {new Date(person.birthdate).toLocaleDateString("fr-FR")}
             </p>
           )}
-          {actor.gender && actor.gender !== "unspecified" && (
-            <p className="text-sm capitalize">Genre : {actor.gender}</p>
+          {person.gender && person.gender !== "unspecified" && (
+            <p className="text-sm capitalize">Genre : {person.gender}</p>
           )}
         </div>
       </div>
@@ -74,9 +98,10 @@ export default function ActorCard({ actor }) {
             className="overflow-hidden relative z-50"
           >
             <div className="bg-[#222] rounded-2xl mt-3 p-6 shadow-lg">
-              <ActorModal
-                actor={actor}
-                movies={actor.acted_in || []}
+              <PersonModal
+                person={person}
+                movies={movies}
+                type={type}
                 onClose={() => setIsOpen(false)}
               />
             </div>

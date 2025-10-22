@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Home from "./pages/Home";
 import Actors from "./pages/Actors";
 import Footer from "./components/Footer";
+import Filmmakers from "./pages/Filmmakers";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/actors" element={<Actors />} />
+            <Route path="/filmmakers" element={<Filmmakers />} />
           </Routes>
         </main>
 
