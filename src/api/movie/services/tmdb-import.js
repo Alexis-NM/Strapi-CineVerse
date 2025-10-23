@@ -66,14 +66,13 @@ module.exports = ({ strapi }) => {
       const { firstName, lastName } = tmdb.splitName(full);
       const data = {
         tmdb_id: personId,
-        name: lastName || person.name || full, // requis
+        name: lastName || person.name || full,
         firstname: firstName || "",
         biography: person.biography || null,
         birthdate: person.birthday || null,
         gender: genderMap[person.gender] || "unspecified",
         is_actor: !!flags.actor,
         is_filmmaker: !!flags.filmmaker,
-        // URL TMDb directe (fallback d'image)
         profile_url: person.profile_path
           ? tmdb.imageUrl(person.profile_path, "w500")
           : null,
@@ -112,7 +111,13 @@ module.exports = ({ strapi }) => {
           "api::movie.movie",
           {
             filters: { tmdb_id: m.id },
-            fields: ["id", "trailer", "duration_minutes", "poster_url"],
+            fields: [
+              "id",
+              "trailer",
+              "duration_minutes",
+              "poster_url",
+              "banner_url",
+            ],
             limit: 1,
           }
         );
@@ -166,6 +171,11 @@ module.exports = ({ strapi }) => {
           ? tmdb.imageUrl(details.poster_path, "w500")
           : null;
 
+        // URL bannière TMDb (backdrop)
+        const bannerUrl = details.backdrop_path
+          ? tmdb.imageUrl(details.backdrop_path, "w1280")
+          : null;
+
         if (!found) {
           await strapi.entityService.create("api::movie.movie", {
             data: {
@@ -176,7 +186,8 @@ module.exports = ({ strapi }) => {
               popularity: m.popularity ?? details.popularity ?? null,
               duration_minutes: details.runtime || null,
               trailer: trailerUrl,
-              poster_url: posterUrl, // ✅ on stocke l’URL TMDb
+              poster_url: posterUrl,
+              banner_url: bannerUrl,
               categories: categoryIds,
               actors: actorIds,
               directors: directorIds,
@@ -190,6 +201,8 @@ module.exports = ({ strapi }) => {
           if (!found.duration_minutes && details.runtime)
             data.duration_minutes = details.runtime;
           if (!found.poster_url && posterUrl) data.poster_url = posterUrl;
+          if (!found.banner_url && bannerUrl) data.banner_url = bannerUrl;
+
           if (categoryIds.length) data.categories = categoryIds;
           if (actorIds.length) data.actors = actorIds;
           if (directorIds.length) data.directors = directorIds;

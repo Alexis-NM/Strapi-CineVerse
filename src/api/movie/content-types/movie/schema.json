@@ -40,6 +40,15 @@
             "multiple": false,
             "required": false
         },
+        "banner_url": {
+            "type": "string",
+            "required": false
+        },
+        "banner_picture": {
+            "type": "media",
+            "multiple": false,
+            "required": false
+        },
         "duration_minutes": {
             "type": "integer",
             "required": false,
