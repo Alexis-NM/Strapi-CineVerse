@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import PersonModal from "./PersonModal";
 import { MdOutlineNoPhotography } from "react-icons/md";
 
-export default function PersonCard({ person, type }) {
+export default function PersonCard({ person, type, onMovieClick }) { // ✅ ajout de la prop
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleOpen = (e) => {
@@ -47,7 +47,6 @@ export default function PersonCard({ person, type }) {
         }`}
         onClick={toggleOpen}
       >
-
         <div className="w-28 h-40 rounded-xl shadow flex items-center justify-center bg-gray-800 overflow-hidden">
           {person.profile_url ? (
             <img
@@ -88,9 +87,13 @@ export default function PersonCard({ person, type }) {
             <div className="bg-[#222] rounded-2xl mt-3 p-6 shadow-lg">
               <PersonModal
                 person={person}
-                movies={movies}  
-                type={type}       
+                movies={movies}
+                type={type}
                 onClose={() => setIsOpen(false)}
+                onMovieClick={(movie) => {
+                  setIsOpen(false); // ✅ ferme la modale de la personne
+                  onMovieClick?.(movie); // ✅ ouvre le MovieOverlay
+                }}
               />
             </div>
           </motion.div>

@@ -10,7 +10,7 @@ export default function Login() {
   const { login } = useAuth(); // on utilise la méthode du contexte
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || "/actors"; // fallback vers /home
+  const from = location.state?.from?.pathname || "/home"; // fallback vers /home
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
