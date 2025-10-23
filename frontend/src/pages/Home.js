@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { fetchMovies } from "../api/api";
 import CardMovies from "../components/CardMovies";
 import MovieOverlay from "../components/MovieOverlay";
@@ -8,6 +9,9 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [pendingSelection, setPendingSelection] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
@@ -27,6 +31,33 @@ function Home() {
     return () => (mounted = false);
   }, []);
 
+  // Lorsque la navigation provient de la recherche, on récupère l'ID du film à ouvrir
+  useEffect(() => {
+    const highlight = location.state?.highlight;
+    if (highlight?.type === "movie" && highlight.item) {
+      const item = highlight.item;
+      setSelectedMovie(item);
+      setPendingSelection(item);
+      try {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch {
+        window.scrollTo(0, 0);
+      }
+      // Nettoie l'état de navigation pour éviter une réouverture involontaire
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
+
+  // Une fois la liste des films chargée, on remplace par la version la plus à jour
+  useEffect(() => {
+    if (!pendingSelection || movies.length === 0) return;
+    const match = movies.find((movie) => movie.id === pendingSelection.id);
+    if (match) {
+      setSelectedMovie(match);
+      setPendingSelection(null);
+    }
+  }, [movies, pendingSelection]);
+
   useEffect(() => {
     if (selectedMovie)
       console.log(
@@ -41,7 +72,10 @@ function Home() {
         {selectedMovie ? (
           <MovieOverlay
             movie={selectedMovie}
-            onClose={() => setSelectedMovie(null)}
+            onClose={() => {
+              setSelectedMovie(null);
+              setPendingSelection(null);
+            }}
           />
         ) : null}
 
