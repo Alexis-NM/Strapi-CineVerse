@@ -9,3 +9,11 @@ body {
 .bg-gray-50 {
   background-color: #141414;
 }
+
+.custom-scroll {
+  scrollbar-width: none;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  display: none;
+}

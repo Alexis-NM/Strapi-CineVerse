@@ -2,11 +2,15 @@ import React, { useEffect, useState, useRef } from 'react';
 import { HiOutlineClock } from 'react-icons/hi';
 import { AiOutlineEye } from 'react-icons/ai';
 import { HiX } from 'react-icons/hi';
+import { useNavigate } from 'react-router-dom';
+import { fetchPersonById } from '../api/api';
 
 export default function MovieOverlay({ movie, onClose }) {
   const [visible, setVisible] = useState(false);
   const [playingTrailer, setPlayingTrailer] = useState(false);
+  const [personLoading, setPersonLoading] = useState(false);
   const overlayRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (movie) {
@@ -51,13 +55,88 @@ export default function MovieOverlay({ movie, onClose }) {
     return null;
   }
 
+  function normalizeFallbackPerson(person) {
+    if (!person) return null;
+    let fallbackFirstname = person.firstname ?? "";
+    let fallbackName = person.name ?? "";
+    if (!fallbackFirstname && fallbackName) {
+      const parts = fallbackName.split(" ");
+      if (parts.length > 1) {
+        fallbackFirstname = parts.shift();
+        fallbackName = parts.join(" ");
+      }
+    }
+    return {
+      id: person.id,
+      firstname: fallbackFirstname,
+      name: fallbackName,
+      biography: person.biography || "",
+      birthdate: person.birthdate || null,
+      gender: person.gender || "unspecified",
+      profile_url: person.photo || person.profile_url || null,
+      acted_in: person.acted_in || [],
+      directed: person.directed || [],
+    };
+  }
+
+  async function handlePersonClick(personData, role) {
+    if (!personData?.id) return;
+    const fallback = normalizeFallbackPerson(personData);
+    setPersonLoading(true);
+    try {
+      const data = await fetchPersonById(personData.id);
+      const payload = data || fallback;
+      const type = role === 'director' ? 'filmmaker' : 'actor';
+      const targetRoute = role === 'director' ? '/filmmakers' : '/actors';
+      navigate(targetRoute, {
+        state: {
+          highlight: {
+            type,
+            item: payload,
+          },
+        },
+      });
+      handleClose();
+    } catch (err) {
+      console.error("Failed to load person", err);
+      const type = role === 'director' ? 'filmmaker' : 'actor';
+      const targetRoute = role === 'director' ? '/filmmakers' : '/actors';
+      navigate(targetRoute, {
+        state: {
+          highlight: {
+            type,
+            item: fallback,
+          },
+        },
+      });
+      handleClose();
+    } finally {
+      setPersonLoading(false);
+    }
+  }
+
+  function formatPersonDisplay(person) {
+    if (!person) return 'Unknown';
+    const parts = [person.firstname, person.name].filter(Boolean);
+    if (parts.length > 0) return parts.join(' ');
+    return person.name || 'Unknown';
+  }
+
+  const castMembers =
+    Array.isArray(movie.cast) && movie.cast.length > 0
+      ? movie.cast
+      : Array.isArray(movie.actors)
+      ? movie.actors
+      : [];
+  const directorMembers = Array.isArray(movie.directors) ? movie.directors : [];
+
   return (
     <div
       ref={overlayRef}
       tabIndex={-1}
-      className={`overflow-hidden transition-[max-height,opacity] duration-300 ${visible ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}
+      className={`overflow-hidden transition-[max-height,opacity] duration-300 ${visible ? 'max-h-[1500px] lg:max-h-[1800px] opacity-100' : 'max-h-0 opacity-0'}`}
     >
-      <div className="bg-[#0b0b0b] rounded-2xl overflow-hidden shadow-2xl mt-6">
+      <div className="bg-[#0b0b0b] rounded-2xl overflow-hidden shadow-2xl mt-6 max-w-[1000px] xl:max-w-[1080px] mx-auto">
         <div className="relative w-full h-80 md:h-[420px] bg-black">
           {playingTrailer ? (
             (() => {
@@ -108,49 +187,134 @@ export default function MovieOverlay({ movie, onClose }) {
                 Watch Trailer
               </button>
               <button aria-label="Favorite" className="bg-transparent border border-white/20 text-white px-3 py-2 rounded-md">♡</button>
-            </div>
+          </div>
         </div>
 
-        <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#141414] p-4 rounded-md"> 
-                <h3 className="text-sm text-gray-300 font-semibold">Description</h3>
-                <p className="text-gray-400 text-sm mt-2">{movie.overview || movie.description || 'No description available.'}</p>
-              </div>
-              <div className="bg-[#141414] p-4 rounded-md">
-                <h3 className="text-sm text-gray-300 font-semibold">Cast</h3>
-                <div className="flex gap-3 mt-3 overflow-x-auto">
-                  {(movie.cast || []).length > 0 ? (
-                    (movie.cast || []).map((c, i) => (
-                      <div key={i} className="w-12 h-12 rounded-full bg-gray-700 overflow-hidden" title={c.name}>
-                        {c.photo ? <img src={c.photo} alt={c.name} className="w-full h-full object-cover" /> : null}
-                      </div>
+        <div className="px-6 py-6 lg:px-10 lg:py-10">
+          <div className="flex flex-col lg:flex-row gap-8 xl:gap-10">
+            <div className="space-y-6 lg:max-w-[660px] xl:max-w-[700px] w-full lg:pr-0">
+              <section className="bg-[#141414] p-4 lg:p-5 rounded-xl">
+                <h3 className="text-sm text-gray-300 font-semibold uppercase tracking-[0.2em]">
+                  Description
+                </h3>
+                <p className="text-gray-400 text-sm mt-3 leading-relaxed">
+                  {movie.overview || movie.description || 'No description available.'}
+                </p>
+              </section>
+
+              <section className="bg-[#141414] p-4 lg:p-5 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm text-gray-300 font-semibold uppercase tracking-[0.2em]">
+                    Cast
+                  </h3>
+                  {personLoading ? (
+                    <span className="text-xs text-gray-500">Opening…</span>
+                  ) : null}
+                </div>
+                <div className="flex gap-4 mt-4 overflow-x-auto pb-1 custom-scroll">
+                  {castMembers.length > 0 ? (
+                    castMembers.map((person) => (
+                      <button
+                        key={person.id || person.name}
+                        type="button"
+                        onClick={() => handlePersonClick(person, 'actor')}
+                        disabled={!person.id}
+                        className="group flex flex-col items-center w-[84px] transition-transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-default"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-gray-700 overflow-hidden ring-2 ring-transparent group-hover:ring-red-500 transition">
+                          {person.photo || person.profile_url ? (
+                            <img
+                              src={person.photo || person.profile_url}
+                              alt={formatPersonDisplay(person)}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-300">
+                              N/A
+                            </div>
+                          )}
+                        </div>
+                        <span className="mt-2 text-xs text-gray-300 text-center leading-tight">
+                          {formatPersonDisplay(person)}
+                        </span>
+                      </button>
                     ))
                   ) : (
-                    <div className="text-gray-400">No cast data</div>
+                    <p className="text-gray-500 text-sm">No cast data</p>
                   )}
                 </div>
+              </section>
+
+              {directorMembers.length > 0 ? (
+                <section className="bg-[#141414] p-4 lg:p-5 rounded-xl">
+                  <h3 className="text-sm text-gray-300 font-semibold uppercase tracking-[0.2em]">
+                    Directors
+                  </h3>
+                  <div className="flex gap-4 mt-4 overflow-x-auto pb-1 custom-scroll">
+                    {directorMembers.map((person) => (
+                      <button
+                        key={person.id || person.name}
+                        type="button"
+                        onClick={() => handlePersonClick(person, 'director')}
+                        disabled={!person.id}
+                        className="group flex flex-col items-center w-[84px] transition-transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-default"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-gray-700 overflow-hidden ring-2 ring-transparent group-hover:ring-red-500 transition">
+                          {person.profile_url ? (
+                            <img
+                              src={person.profile_url}
+                              alt={formatPersonDisplay(person)}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-300">
+                              N/A
+                            </div>
+                          )}
+                        </div>
+                        <span className="mt-2 text-xs text-gray-300 text-center leading-tight">
+                          {formatPersonDisplay(person)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+            </div>
+
+            <aside className="space-y-4 lg:w-[260px] xl:w-[300px] flex-shrink-0">
+              <div className="bg-[#141414] p-4 rounded-xl">
+                <h4 className="text-sm text-gray-300 uppercase tracking-[0.2em]">
+                  Released
+                </h4>
+                <p className="text-gray-400 text-sm mt-3">{movie.release_date || movie.publishedAt || 'Unknown'}</p>
               </div>
-            </div>
+
+              <div className="bg-[#141414] p-4 rounded-xl flex items-center gap-3">
+                <div className="p-2 rounded-full bg-[#1f1f1f] text-gray-300">
+                  <HiOutlineClock />
+                </div>
+                <div>
+                  <h4 className="text-sm text-gray-300 uppercase tracking-[0.2em]">
+                    Runtime
+                  </h4>
+                  <p className="text-gray-400 text-sm mt-1">{duration}</p>
+                </div>
+              </div>
+
+              <div className="bg-[#141414] p-4 rounded-xl flex items-center gap-3">
+                <div className="p-2 rounded-full bg-[#1f1f1f] text-gray-300">
+                  <AiOutlineEye />
+                </div>
+                <div>
+                  <h4 className="text-sm text-gray-300 uppercase tracking-[0.2em]">
+                    Popularity
+                  </h4>
+                  <p className="text-gray-400 text-sm mt-1">{views}</p>
+                </div>
+              </div>
+            </aside>
           </div>
-
-          <aside className="space-y-4">
-            <div className="bg-[#141414] p-4 rounded-md">
-              <h4 className="text-sm text-gray-300">Released</h4>
-              <p className="text-gray-400 text-sm mt-2">{movie.release_date || movie.publishedAt || 'Unknown'}</p>
-            </div>
-
-            <div className="bg-[#141414] p-4 rounded-md">
-              <h4 className="text-sm text-gray-300">Runtime</h4>
-              <p className="text-gray-400 text-sm mt-2">{duration}</p>
-            </div>
-
-            <div className="bg-[#141414] p-4 rounded-md">
-              <h4 className="text-sm text-gray-300">Views</h4>
-              <p className="text-gray-400 text-sm mt-2">{views}</p>
-            </div>
-          </aside>
         </div>
       </div>
     </div>

@@ -270,6 +270,37 @@ export async function fetchFilmmakers() {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
+// Single person
+// ───────────────────────────────────────────────────────────────────────────────
+export async function fetchPersonById(id) {
+  if (!id) {
+    throw new Error("Person id is required");
+  }
+
+  const url =
+    `/personalities/${id}` +
+    `?fields[0]=firstname` +
+    `&fields[1]=name` +
+    `&fields[2]=biography` +
+    `&fields[3]=birthdate` +
+    `&fields[4]=gender` +
+    `&fields[5]=is_actor` +
+    `&fields[6]=is_filmmaker` +
+    `&populate[profil_picture][fields][0]=url` +
+    `&populate[acted_in][fields][0]=title` +
+    `&populate[acted_in][fields][1]=release_date` +
+    `&populate[acted_in][fields][2]=poster_url` +
+    `&populate[acted_in][populate][poster_picture]=true` +
+    `&populate[directed][fields][0]=title` +
+    `&populate[directed][fields][1]=release_date` +
+    `&populate[directed][fields][2]=poster_url` +
+    `&populate[directed][populate][poster_picture]=true`;
+
+  const data = await apiFetch(url);
+  return normalizePerson(data?.data);
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
 // Search helpers
 // ───────────────────────────────────────────────────────────────────────────────
 
