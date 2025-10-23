@@ -261,30 +261,30 @@ function Header() {
   };
 
   return (
-    <header className="bg-[#0c0c0c] text-white border-t border-[#1b68d2] border-b border-white/10">
-      <div className="relative w-full px-4 sm:px-6 py-4 flex items-center justify-center">
+    <header className="bg-[#0c0c0c] text-white border-t border-[#1b68d2]">
+      <div className="relative w-full px-5 sm:px-8 py-5 flex items-center justify-center">
         {/* Bloc logo fixé à gauche */}
-        <div className="absolute left-4 sm:left-6 flex items-center gap-3 min-w-[160px] flex-shrink-0">
-          <div className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-[10px] uppercase tracking-[0.35em] text-white/60">
+        <div className="absolute left-5 sm:left-8 flex items-center gap-3.5 min-w-[180px] flex-shrink-0">
+          <div className="w-12 h-12 rounded-full border-2 border-white/30 flex items-center justify-center text-[10px] uppercase tracking-[0.35em] text-white/70">
             Logo
           </div>
-          <span className="text-xl font-semibold tracking-[0.35em] uppercase">
+          <span className="text-[22px] font-semibold tracking-[0.35em] uppercase">
             Cineverse
           </span>
         </div>
 
         {/* Navigation au centre */}
-        <nav className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-2xl p-1 shadow-inner overflow-x-auto whitespace-nowrap">
+        <nav className="flex items-center gap-1.5 bg-black/40 border-2 border-white/15 rounded-[26px] p-1.5 shadow-[inset_0_3px_12px_rgba(0,0,0,0.45)] overflow-x-auto whitespace-nowrap">
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
                 [
-                  "px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                  "px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200",
                   isActive
-                    ? "bg-white/10 text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)]"
-                    : "text-gray-400 hover:text-white/90",
+                    ? "bg-white/15 text-white shadow-[0_5px_14px_rgba(0,0,0,0.36)]"
+                    : "text-gray-300 hover:text-white/85",
                 ].join(" ")
               }
             >
@@ -294,7 +294,7 @@ function Header() {
         </nav>
 
         {/* Icônes à droite + zone de recherche déroulante */}
-        <div className="absolute right-4 sm:right-6 flex items-center gap-6 text-xl min-w-[100px] justify-end flex-shrink-0">
+        <div className="absolute right-5 sm:right-8 flex items-center gap-6 text-[22px] min-w-[110px] justify-end flex-shrink-0">
           <div className="relative flex items-center" ref={searchRef}>
             <button
               type="button"
@@ -306,7 +306,7 @@ function Header() {
             </button>
 
             <div
-              className={`absolute right-12 top-1/2 -translate-y-1/2 bg-[#141414] border border-white/10 rounded-xl overflow-hidden transition-all duration-300 origin-right shadow-lg ${
+              className={`absolute right-[2.9rem] top-1/2 -translate-y-1/2 bg-[#141414] border-2 border-white/20 rounded-2xl overflow-hidden transition-all duration-300 origin-right shadow-xl ${
                 isSearchOpen
                   ? "opacity-100 scale-100 pointer-events-auto"
                   : "opacity-0 scale-95 pointer-events-none"
@@ -323,13 +323,13 @@ function Header() {
                   }
                 }}
                 placeholder="Rechercher un film, un acteur, un réalisateur..."
-                className="w-72 bg-transparent text-sm text-white placeholder:text-gray-500 px-4 py-2 outline-none"
+                className="w-72 bg-transparent text-sm text-white placeholder:text-gray-500 px-4 py-2.5 outline-none"
                 aria-label="Recherche"
               />
             </div>
 
             <div
-              className={`absolute right-12 top-full mt-3 w-[320px] bg-[#101010] border border-white/10 rounded-2xl shadow-2xl transition-all duration-200 origin-top-right ${
+              className={`absolute right-[2.9rem] top-full mt-3.5 w-[330px] bg-[#101010] border border-white/10 rounded-3xl shadow-2xl transition-all duration-200 origin-top-right ${
                 isSearchOpen && (showSuggestions || loading || error)
                   ? "opacity-100 translate-y-0 pointer-events-auto"
                   : "opacity-0 -translate-y-1 pointer-events-none"
@@ -425,7 +425,7 @@ function Header() {
             className="text-gray-300 hover:text-white transition-colors"
             aria-label="Compte"
           >
-            <LuCircleUser className="text-2xl" />
+            <LuCircleUser className="text-[34px]" />
           </NavLink>
         </div>
       </div>
