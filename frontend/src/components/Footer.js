@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { useLegalModal } from "../context/LegalModalContext";
 
 const FOOTER_LINKS = [
   { label: "Movies", to: "/home" },
@@ -10,6 +11,7 @@ const FOOTER_LINKS = [
 
 function Footer() {
   const currentYear = new Date().getFullYear();
+  const { handleOpen } = useLegalModal();
 
   return (
     <footer className="bg-[#0b0b0b] text-gray-300">
@@ -72,21 +74,21 @@ function Footer() {
             © {currentYear} Cineverse. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <NavLink to="/terms" className="hover:text-white transition-colors">
+            <button onClick={() => handleOpen("terms")} className="hover:text-white transition-colors">
               Terms of Use
-            </NavLink>
+            </button>
             <span>•</span>
-            <NavLink to="/privacy" className="hover:text-white transition-colors">
+            <button onClick={() => handleOpen("privacy")} className="hover:text-white transition-colors">
               Privacy Policy
-            </NavLink>
+            </button>
             <span>•</span>
-            <NavLink to="/legal-notice" className="hover:text-white transition-colors">
+            <button onClick={() => handleOpen("legal")} className="hover:text-white transition-colors">
               Legal Notice
-            </NavLink>
+            </button>
             <span>•</span>
-            <NavLink to="/cookies" className="hover:text-white transition-colors">
+            <button onClick={() => handleOpen("cookies")} className="hover:text-white transition-colors">
               Cookie Settings
-            </NavLink>
+            </button>
           </div>
         </div>
       </div>
