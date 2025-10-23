@@ -5,6 +5,7 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { motion } from "framer-motion";
 import Modal from "../components/Modal";
+import { validateEmail, validatePassword } from "../utils/validators";
 
 export default function Login() {
   const { login } = useAuth(); // on utilise la méthode du contexte
@@ -14,12 +15,22 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(""); // objet d'erreur par champs, pour faire apparaitre visuellement un message d'erreur sur le formulaire
   const [showModal, setShowModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    if (!validateEmail(email)) {
+      setError("Invalid email format.");
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setError("Invalid password. Please check the requirements.");
+      return;
+    }
 
     try {
       await login(email, password); // le contexte s’occupe du fetch et du stockage
