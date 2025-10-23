@@ -1,5 +1,12 @@
-export default function PersonModal({ person, movies, type, onClose, onMovieClick }) {
-  if (!person) return null;
+import { useNavigate } from "react-router-dom";
+
+export default function PersonModal({ person, movies, type, onClose }) {
+  const navigate = useNavigate();
+
+  const handleMovieClick = (movie) => {
+    onClose(); // ferme la modale
+    navigate(`/home?movie=${movie.id}`); // 👈 redirige vers Home avec le film en paramètre
+  };
 
   return (
     <div className="text-gray-300">
@@ -34,7 +41,7 @@ export default function PersonModal({ person, movies, type, onClose, onMovieClic
             {movies.map((movie) => (
               <li key={movie.id}>
                 <button
-                  onClick={() => onMovieClick && onMovieClick(movie)}
+                  onClick={() => handleMovieClick(movie)}
                   className="text-blue-400 hover:underline hover:text-blue-300 transition"
                 >
                   {movie.title}
