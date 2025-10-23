@@ -1,4 +1,4 @@
-# 🎬 Strapi Cinema
+# 🎬 Strapi Cineverse
 
 ![App Screenshot](./docs/screenshot.png)  
 *React front-end connected to Strapi API*  
