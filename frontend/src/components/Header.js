@@ -8,6 +8,8 @@ import React, {
 import { NavLink, useNavigate } from "react-router-dom";
 import { LuSearch, LuCircleUser } from "react-icons/lu";
 import { searchContent } from "../api/api";
+import { useAuth } from "../context/AuthContext";
+import LogoutModal from "../components/LogoutModal";
 
 const NAV_ITEMS = [
   { label: "Movies", to: "/home" },
@@ -113,9 +115,15 @@ function Header() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // 👇 NEW: state pour la modale de logout
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const searchRef = useRef(null);
   const inputRef = useRef(null);
   const navigate = useNavigate();
+
+  // 👇 NEW: récupération de logout depuis le contexte
+  const { logout } = useAuth?.() ?? { logout: null };
 
   // Ferme la zone de recherche et réinitialise l'état
   const closeSearch = useCallback(() => {
@@ -136,10 +144,7 @@ function Header() {
     }, 80);
 
     const handleClickOutside = (event) => {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target)
-      ) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
         closeSearch();
       }
     };
@@ -233,11 +238,8 @@ function Header() {
   );
 
   const handleToggleSearch = () => {
-    if (isSearchOpen) {
-      closeSearch();
-    } else {
-      setIsSearchOpen(true);
-    }
+    if (isSearchOpen) closeSearch();
+    else setIsSearchOpen(true);
   };
 
   // Redirige vers la page concernée en injectant les données dans location.state
@@ -247,17 +249,25 @@ function Header() {
     closeSearch();
 
     const targetRoute =
-      type === "movie"
-        ? "/home"
-        : type === "actor"
-        ? "/actors"
-        : "/filmmakers";
+      type === "movie" ? "/home" : type === "actor" ? "/actors" : "/filmmakers";
 
     navigate(targetRoute, {
-      state: {
-        highlight: { type, item: sanitized },
-      },
+      state: { highlight: { type, item: sanitized } },
     });
+  };
+
+  // 👇 NEW: confirmation du logout
+  const handleConfirmLogout = () => {
+    // Si ton AuthContext supprime le token, ceci suffit :
+    if (typeof logout === "function") {
+      logout();
+    } else {
+      // sécurité si jamais le contexte n'est pas dispo
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+    }
+    setShowLogoutModal(false);
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -300,7 +310,10 @@ function Header() {
               type="button"
               onClick={handleToggleSearch}
               className="text-gray-300 hover:text-white transition-colors relative z-20"
-              aria-label={isSearchOpen ? "Fermer la recherche" : "Ouvrir la recherche"}
+              aria-label={
+                isSearchOpen ? "Fermer la recherche" : "Ouvrir la recherche"
+              }
+              title={isSearchOpen ? "Close search" : "Open search"}
             >
               <LuSearch />
             </button>
@@ -341,9 +354,7 @@ function Header() {
                     Recherche en cours…
                   </p>
                 ) : error ? (
-                  <p className="text-sm text-red-400 px-3 py-2">
-                    {error}
-                  </p>
+                  <p className="text-sm text-red-400 px-3 py-2">{error}</p>
                 ) : hasResults ? (
                   sections
                     .filter((section) => section.items.length > 0)
@@ -364,15 +375,12 @@ function Header() {
                               : formatPersonName(item);
                           const meta =
                             section.type === "movie"
-                              ? [
-                                  "Movie",
-                                  releaseYear(item.release_date),
-                                ]
+                              ? ["Movie", releaseYear(item.release_date)]
                                   .filter(Boolean)
                                   .join(" • ")
                               : section.type === "actor"
-                              ? "Actor"
-                              : "Director";
+                                ? "Actor"
+                                : "Director";
 
                           return (
                             <button
@@ -420,15 +428,29 @@ function Header() {
             </div>
           </div>
 
-          <NavLink
-            to="/account"
+          {/* Icône compte -> ouvre la modale de logout */}
+          <button
+            type="button"
+            onClick={() => setShowLogoutModal(true)}
             className="text-gray-300 hover:text-white transition-colors"
-            aria-label="Compte"
+            aria-label="Logout"
+            title="Logout"
           >
             <LuCircleUser className="text-[34px]" />
-          </NavLink>
+          </button>
         </div>
       </div>
+
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        title="Log out"
+        message="Are you sure you want to log out?"
+        actions={[
+          { label: "Cancel", onClick: () => setShowLogoutModal(false) },
+          { label: "Log out", onClick: handleConfirmLogout, variant: "danger" },
+        ]}
+      />
     </header>
   );
 }
