@@ -1,4 +1,4 @@
-export default function PersonModal({ person, movies, type, onClose }) {
+export default function PersonModal({ person, movies, type, onClose, onMovieClick }) {
   if (!person) return null;
 
   return (
@@ -28,11 +28,17 @@ export default function PersonModal({ person, movies, type, onClose }) {
         <h3 className="font-semibold text-white mb-2">
           {type === "actor" ? "🎬 Films joués :" : "🎞️ Films réalisés :"}
         </h3>
+
         {movies.length > 0 ? (
           <ul className="list-disc list-inside space-y-1">
             {movies.map((movie) => (
               <li key={movie.id}>
-                {movie.title}{" "}
+                <button
+                  onClick={() => onMovieClick && onMovieClick(movie)}
+                  className="text-blue-400 hover:underline hover:text-blue-300 transition"
+                >
+                  {movie.title}
+                </button>{" "}
                 {movie.release_date && (
                   <span className="text-gray-500 text-sm">
                     ({new Date(movie.release_date).getFullYear()})
@@ -43,8 +49,7 @@ export default function PersonModal({ person, movies, type, onClose }) {
           </ul>
         ) : (
           <p className="text-gray-400 text-sm">
-            Aucun film{" "}
-            {type === "actor" ? "joué" : "réalisé"} trouvé.
+            Aucun film {type === "actor" ? "joué" : "réalisé"} trouvé.
           </p>
         )}
       </div>

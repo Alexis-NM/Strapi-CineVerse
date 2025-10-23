@@ -23,7 +23,7 @@ export function toAbsoluteUrl(url) {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Helper fetch : ajoute JWT si présent, parse JSON/texte, remonte les erreurs
+/* Helper fetch : ajoute JWT si présent, parse JSON/texte, remonte les erreurs */
 // ───────────────────────────────────────────────────────────────────────────────
 export async function apiFetch(path, options = {}) {
   const jwt =
@@ -93,7 +93,11 @@ function normalizePersonSummary(entity) {
   if (!entity) return null;
   const attr = entity.attributes ?? entity ?? {};
   const id = entity.id ?? attr.id ?? null;
-  const profileSource = attr.profile ?? attr.profile_url ?? null;
+  const profileSource =
+    attr.profile ??
+    attr.profile_url ??
+    attr?.profil_picture?.data?.attributes?.url ??
+    null;
   const profile = profileSource ? toAbsoluteUrl(profileSource) : null;
 
   return {
@@ -144,7 +148,8 @@ export function normalizeMovie(entity) {
     overview: attr.overview ?? attr.description ?? "",
     description: attr.description ?? attr.overview ?? "",
     release_date: attr.release_date ?? null,
-    duration_minutes: attr.duration_minutes ?? attr.duration ?? attr.runtime ?? null,
+    duration_minutes:
+      attr.duration_minutes ?? attr.duration ?? attr.runtime ?? null,
     popularity: attr.popularity ?? attr.views ?? null,
     poster: computedPoster || fallbackPoster,
     poster_url: fallbackPoster || computedPoster,
@@ -165,7 +170,13 @@ export function normalizePerson(entity) {
   if (!entity) return null;
   const attr = entity.attributes ?? entity ?? {};
   const id = entity.id ?? attr.id ?? null;
-  const profileSource = attr.profile ?? attr.profile_url ?? null;
+
+  // Couvrir profile/profile_url ET la relation profil_picture (clé sans 'e')
+  const profileSource =
+    attr.profile ??
+    attr.profile_url ??
+    attr?.profil_picture?.data?.attributes?.url ??
+    null;
   const profile = profileSource ? toAbsoluteUrl(profileSource) : null;
 
   return {
@@ -224,6 +235,7 @@ export async function fetchActors() {
 
   const items = Array.isArray(data?.data) ? data.data : [];
   const actors = items.map(normalizePerson).filter(Boolean);
+
   console.log(`✅ ${actors.length} acteurs récupérés`);
   return actors;
 }
