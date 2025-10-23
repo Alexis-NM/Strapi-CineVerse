@@ -24,13 +24,11 @@ const EMPTY_SUGGESTIONS = Object.freeze({
   filmmakers: [],
 });
 
-// Assemble le nom complet d'une personnalité pour l'affichage
 function formatPersonName(person) {
   if (!person) return "";
   return [person.firstname, person.name].filter(Boolean).join(" ").trim();
 }
 
-// Récupère l'année à partir d'une date (utile pour le badge de film)
 function releaseYear(dateString) {
   if (!dateString) return null;
   try {
@@ -40,7 +38,6 @@ function releaseYear(dateString) {
   }
 }
 
-// Nettoie les données envoyées via le router (évite de partager tout l'objet Strapi)
 function sanitizeSelection(item, type) {
   if (!item) return null;
   if (type === "movie") {
@@ -115,17 +112,14 @@ function Header() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 👇 NEW: state pour la modale de logout
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const searchRef = useRef(null);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
-  // 👇 NEW: récupération de logout depuis le contexte
   const { logout } = useAuth?.() ?? { logout: null };
 
-  // Ferme la zone de recherche et réinitialise l'état
   const closeSearch = useCallback(() => {
     setIsSearchOpen(false);
     setQuery("");
@@ -135,7 +129,6 @@ function Header() {
     setLoading(false);
   }, []);
 
-  // Gestion du clic extérieur + touche Échap lorsque la recherche est ouverte
   useEffect(() => {
     if (!isSearchOpen) return undefined;
 
@@ -165,7 +158,6 @@ function Header() {
     };
   }, [isSearchOpen, closeSearch]);
 
-  // Déclenche la recherche (avec un léger debounce) dès que 2 caractères sont tapés
   useEffect(() => {
     if (!isSearchOpen) return undefined;
 
@@ -242,12 +234,10 @@ function Header() {
     else setIsSearchOpen(true);
   };
 
-  // Redirige vers la page concernée en injectant les données dans location.state
   const handleSelectSuggestion = (type, item) => {
     if (!item) return;
     const sanitized = sanitizeSelection(item, type);
     closeSearch();
-
     const targetRoute =
       type === "movie" ? "/home" : type === "actor" ? "/actors" : "/filmmakers";
 
@@ -256,13 +246,10 @@ function Header() {
     });
   };
 
-  // 👇 NEW: confirmation du logout
   const handleConfirmLogout = () => {
-    // Si ton AuthContext supprime le token, ceci suffit :
     if (typeof logout === "function") {
       logout();
     } else {
-      // sécurité si jamais le contexte n'est pas dispo
       localStorage.removeItem("token");
       sessionStorage.removeItem("token");
     }
@@ -272,8 +259,8 @@ function Header() {
 
   return (
     <header className="bg-[#0c0c0c] text-white border-t border-[#1b68d2]">
-      <div className="relative w-full px-5 sm:px-8 py-5 flex items-center justify-center">
-        {/* Bloc logo fixé à gauche */}
+      <div className="relative w-full px-5 sm:px-8 py-5 flex items-center justify-center z-10">
+        {/* Logo */}
         <div className="absolute left-5 sm:left-8 flex items-center gap-3.5 min-w-[180px] flex-shrink-0">
           <div className="w-12 h-12 rounded-full border-2 border-white/30 flex items-center justify-center text-[10px] uppercase tracking-[0.35em] text-white/70">
             Logo
@@ -283,7 +270,7 @@ function Header() {
           </span>
         </div>
 
-        {/* Navigation au centre */}
+        {/* Navigation */}
         <nav className="flex items-center gap-1.5 bg-black/40 border-2 border-white/15 rounded-[26px] p-1.5 shadow-[inset_0_3px_12px_rgba(0,0,0,0.45)] overflow-x-auto whitespace-nowrap">
           {NAV_ITEMS.map((item) => (
             <NavLink
@@ -303,13 +290,13 @@ function Header() {
           ))}
         </nav>
 
-        {/* Icônes à droite + zone de recherche déroulante */}
-        <div className="absolute right-5 sm:right-8 flex items-center gap-6 text-[22px] min-w-[110px] justify-end flex-shrink-0">
-          <div className="relative flex items-center" ref={searchRef}>
+        {/* Zone recherche + icône user */}
+        <div className="absolute right-5 sm:right-8 flex items-center gap-6 text-[22px] min-w-[110px] justify-end flex-shrink-0 z-40">
+          <div className="relative flex items-center z-50" ref={searchRef}>
             <button
               type="button"
               onClick={handleToggleSearch}
-              className="text-gray-300 hover:text-white transition-colors relative z-20"
+              className="text-gray-300 hover:text-white transition-colors relative z-50"
               aria-label={
                 isSearchOpen ? "Fermer la recherche" : "Ouvrir la recherche"
               }
@@ -318,8 +305,9 @@ function Header() {
               <LuSearch />
             </button>
 
+            {/* Input */}
             <div
-              className={`absolute right-[2.9rem] top-1/2 -translate-y-1/2 bg-[#141414] border-2 border-white/20 rounded-2xl overflow-hidden transition-all duration-300 origin-right shadow-xl ${
+              className={`absolute right-[2.9rem] top-1/2 -translate-y-1/2 bg-[#141414] border-2 border-white/20 rounded-2xl overflow-hidden transition-all duration-300 origin-right shadow-xl z-50 ${
                 isSearchOpen
                   ? "opacity-100 scale-100 pointer-events-auto"
                   : "opacity-0 scale-95 pointer-events-none"
@@ -331,9 +319,7 @@ function Header() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onFocus={() => {
-                  if (query.trim().length >= 2) {
-                    setShowSuggestions(true);
-                  }
+                  if (query.trim().length >= 2) setShowSuggestions(true);
                 }}
                 placeholder="Rechercher un film, un acteur, un réalisateur..."
                 className="w-72 bg-transparent text-sm text-white placeholder:text-gray-500 px-4 py-2.5 outline-none"
@@ -341,8 +327,9 @@ function Header() {
               />
             </div>
 
+            {/* Résultats */}
             <div
-              className={`absolute right-[2.9rem] top-full mt-3.5 w-[330px] bg-[#101010] border border-white/10 rounded-3xl shadow-2xl transition-all duration-200 origin-top-right ${
+              className={`absolute right-[2.9rem] top-full mt-3.5 w-[330px] bg-[#101010] border border-white/10 rounded-3xl shadow-2xl transition-all duration-200 origin-top-right z-[9999] ${
                 isSearchOpen && (showSuggestions || loading || error)
                   ? "opacity-100 translate-y-0 pointer-events-auto"
                   : "opacity-0 -translate-y-1 pointer-events-none"
@@ -357,7 +344,7 @@ function Header() {
                   <p className="text-sm text-red-400 px-3 py-2">{error}</p>
                 ) : hasResults ? (
                   sections
-                    .filter((section) => section.items.length > 0)
+                    .filter((s) => s.items.length > 0)
                     .map((section) => (
                       <div key={section.key} className="px-1 py-1">
                         <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500 px-3 pb-1">
@@ -428,7 +415,7 @@ function Header() {
             </div>
           </div>
 
-          {/* Icône compte -> ouvre la modale de logout */}
+          {/* User */}
           <button
             type="button"
             onClick={() => setShowLogoutModal(true)}
