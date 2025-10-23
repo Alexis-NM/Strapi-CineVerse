@@ -15,12 +15,12 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // objet d'erreur par champs, pour faire apparaitre visuellement un message d'erreur sur le formulaire
+  const [error, setError] = useState(""); 
   const [showModal, setShowModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError("");
 
     if (!validateEmail(email)) {
       setError("Invalid email format.");
