@@ -97,12 +97,14 @@ export async function fetchActors() {
     // Compat : certaines configs renvoient { id, attributes }, d'autres "à plat"
     const attr = item?.attributes ?? item ?? {};
 
-    const actedIn =
-      attr?.acted_in?.data?.map((movie) => ({
-        id: movie.id,
-        title: movie.attributes?.title ?? "Titre inconnu",
-        release_date: movie.attributes?.release_date ?? null,
-      })) ?? [];
+    const actedInRaw = attr?.acted_in?.data || attr?.acted_in || [];
+    const actedIn = actedInRaw.map((movie) => ({
+      id: movie.id,
+      title: movie.attributes?.title ?? movie.title ?? "Titre inconnu",
+      release_date:
+        movie.attributes?.release_date ?? movie.release_date ?? null,
+    }));
+
 
     const pictureUrl = toAbsoluteUrl(
       attr?.profil_picture?.data?.attributes?.url || attr?.profile_url
@@ -154,12 +156,14 @@ export async function fetchFilmmakers() {
   const filmmakers = items.map((item) => {
     const attr = item?.attributes ?? item ?? {};
 
-    const directed =
-      attr?.directed?.data?.map((movie) => ({
-        id: movie.id,
-        title: movie.attributes?.title ?? "Titre inconnu",
-        release_date: movie.attributes?.release_date ?? null,
-      })) ?? [];
+    const directedRaw = attr?.directed?.data || attr?.directed || [];
+    const directed = directedRaw.map((movie) => ({
+      id: movie.id,
+      title: movie.attributes?.title ?? movie.title ?? "Titre inconnu",
+      release_date:
+        movie.attributes?.release_date ?? movie.release_date ?? null,
+    }));
+
 
     const pictureUrl = toAbsoluteUrl(
       attr?.profil_picture?.data?.attributes?.url || attr?.profile_url
