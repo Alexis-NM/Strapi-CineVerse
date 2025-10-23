@@ -478,6 +478,8 @@ export interface ApiMovieMovie extends Struct.CollectionTypeSchema {
       'manyToMany',
       'api::personality.personality'
     >;
+    banner_picture: Schema.Attribute.Media;
+    banner_url: Schema.Attribute.String;
     categories: Schema.Attribute.Relation<
       'manyToMany',
       'api::category.category'
