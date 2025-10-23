@@ -109,11 +109,13 @@ function normalizePersonSummary(entity) {
 }
 
 // Transforme une réponse Strapi de film complet en objet exploitable sur le front
+// Transforme une réponse Strapi de film complet en objet exploitable sur le front
 export function normalizeMovie(entity) {
   if (!entity) return null;
   const attr = entity.attributes ?? entity ?? {};
   const id = entity.id ?? attr.id ?? null;
 
+  // Poster: accepte string (poster / poster_url) et media (poster_picture)
   const posterSource = attr.poster ?? attr.poster_url ?? null;
   const computedPoster = posterSource ? toAbsoluteUrl(posterSource) : null;
   const fallbackPoster =
@@ -121,6 +123,24 @@ export function normalizeMovie(entity) {
       ? toAbsoluteUrl(attr.poster_url)
       : computedPoster;
 
+  // Banner: accepte string (banner / banner_url) et media (banner_picture)
+  const bannerMediaUrl = attr?.banner_picture?.data?.attributes?.url ?? null;
+  const bannerSource = attr.banner ?? attr.banner_url ?? bannerMediaUrl ?? null;
+  const computedBanner = bannerSource ? toAbsoluteUrl(bannerSource) : null;
+  const fallbackBanner =
+    attr.banner_url && !computedBanner
+      ? toAbsoluteUrl(attr.banner_url)
+      : computedBanner;
+
+  // Si tu ajoutes un champ multiple "banners" (media multiple), on l’extrait proprement
+  const banners = extractCollection(attr.banners)
+    .map((m) => {
+      const u = m?.attributes?.url ?? m?.url ?? null;
+      return u ? toAbsoluteUrl(u) : null;
+    })
+    .filter(Boolean);
+
+  // Relations
   const actors = extractCollection(attr.actors)
     .map(normalizePersonSummary)
     .filter(Boolean);
@@ -151,14 +171,24 @@ export function normalizeMovie(entity) {
     duration_minutes:
       attr.duration_minutes ?? attr.duration ?? attr.runtime ?? null,
     popularity: attr.popularity ?? attr.views ?? null,
+
+    // Poster final
     poster: computedPoster || fallbackPoster,
     poster_url: fallbackPoster || computedPoster,
+
+    // Banner final (supporte url, media simple, ou carrousel)
+    banner: computedBanner || fallbackBanner || banners[0] || null,
+    banner_url: fallbackBanner || computedBanner || banners[0] || null,
+    banners, // tableau si tu actives un champ media multiple
+
     trailer_url: attr.trailer_url ?? attr.trailer ?? null,
+
     cast: actors.map((person) => ({
       id: person.id,
       name: [person.firstname, person.name].filter(Boolean).join(" ").trim(),
       photo: person.profile_url,
     })),
+
     actors,
     directors,
     categories,
