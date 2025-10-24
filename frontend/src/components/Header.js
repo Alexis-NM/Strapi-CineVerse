@@ -10,6 +10,7 @@ import { LuSearch, LuCircleUser } from "react-icons/lu";
 import { searchContent } from "../api/api";
 import { useAuth } from "../context/AuthContext";
 import LogoutModal from "../components/LogoutModal";
+import logoMark from "../assets/cineverse-logo.png";
 
 const NAV_ITEMS = [
   { label: "Movies", to: "/home" },
@@ -261,10 +262,12 @@ function Header() {
     <header className="bg-[#0c0c0c] text-white border-t border-[#1b68d2]">
       <div className="relative w-full px-5 sm:px-8 py-5 flex items-center justify-center z-10">
         {/* Logo */}
-        <div className="absolute left-5 sm:left-8 flex items-center gap-3.5 min-w-[180px] flex-shrink-0">
-          <div className="w-12 h-12 rounded-full border-2 border-white/30 flex items-center justify-center text-[10px] uppercase tracking-[0.35em] text-white/70">
-            Logo
-          </div>
+        <div className="absolute left-5 sm:left-8 flex items-center gap-3.5 min-w-[190px] flex-shrink-0">
+          <img
+            src={logoMark}
+            alt="Cineverse logo"
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover transform scale-[1.2] sm:scale-[1.3] drop-shadow-[0_0_18px_rgba(255,42,42,0.5)]"
+          />
           <span className="text-[22px] font-semibold tracking-[0.35em] uppercase">
             Cineverse
           </span>

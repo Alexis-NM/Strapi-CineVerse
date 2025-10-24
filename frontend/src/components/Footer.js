@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useLegalModal } from "../context/LegalModalContext";
+import logoMark from "../assets/cineverse-logo.png";
 
 const FOOTER_LINKS = [
   { label: "Movies", to: "/home" },
@@ -18,9 +19,11 @@ function Footer() {
       <div className="max-w-6xl mx-auto px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-[1.3fr_1fr_1fr] gap-10">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full border border-white/25 flex items-center justify-center text-[10px] uppercase tracking-[0.35em] text-white/70">
-              Logo
-            </div>
+            <img
+              src={logoMark}
+              alt="Cineverse logo"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover transform scale-[1.2] sm:scale-[1.25] drop-shadow-[0_0_16px_rgba(255,42,42,0.45)]"
+            />
             <span className="text-2xl font-semibold tracking-[0.35em] uppercase">
               Cineverse
             </span>

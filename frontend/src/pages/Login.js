@@ -6,6 +6,7 @@ import Button from "../components/Button";
 import { motion } from "framer-motion";
 import Modal from "../components/Modal";
 import { validateEmail, validatePassword } from "../utils/validators";
+import logoMark from "../assets/cineverse-logo.png";
 
 export default function Login() {
   const { login } = useAuth(); // on utilise la méthode du contexte
@@ -50,15 +51,22 @@ export default function Login() {
 
   return (
     
-    <div className="flex flex-col items-center justify-center w-full min-h-screen flex items-center justify-center bg-gray-50">
-      <motion.h1 
-        className="text-6xl font-extrabold tracking-wider text-[#e50000] mb-2"
+    <div className="flex flex-col items-center justify-center w-full min-h-screen bg-gray-50">
+      <motion.div
+        className="flex items-center gap-4 mb-6"
         initial={{ opacity: 0, y: -20 }} // Démarre un peu plus haut et invisible
         animate={{ opacity: 1, y: 0 }} // Devient visible et descend à sa place
         transition={{ duration: 0.6, ease: "easeOut" }} // Durée + courbe fluide
       >
-        Cineverse
-      </motion.h1>
+        <img
+          src={logoMark}
+          alt="Cineverse logo"
+          className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover drop-shadow-[0_0_24px_rgba(229,0,0,0.6)]"
+        />
+        <h1 className="text-[28px] sm:text-[32px] font-semibold tracking-[0.35em] uppercase text-white">
+          Cineverse
+        </h1>
+      </motion.div>
       <motion.form
         onSubmit={handleSubmit}
         className="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md flex flex-col gap-4"
