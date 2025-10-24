@@ -9,8 +9,9 @@ import Actors from "./pages/Actors";
 import Filmmakers from "./pages/Filmmakers";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import LegalModal from "./components/LegalModal";
 
-// 🧩 Layout gérant dynamiquement l’affichage du Header
+// Layout gérant dynamiquement l’affichage du Header
 function Layout({ children }) {
   const location = useLocation();
 
@@ -31,6 +32,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <LegalModal>
         <Layout>
           <Routes>
             {/* Redirection par défaut */}
@@ -70,6 +72,7 @@ function App() {
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
         </Layout>
+        </LegalModal>
       </Router>
     </AuthProvider>
   );
