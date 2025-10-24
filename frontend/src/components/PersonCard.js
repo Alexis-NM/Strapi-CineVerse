@@ -91,8 +91,8 @@ export default function PersonCard({ person, type, onMovieClick }) { // ✅ ajou
                 type={type}
                 onClose={() => setIsOpen(false)}
                 onMovieClick={(movie) => {
-                  setIsOpen(false); // ✅ ferme la modale de la personne
-                  onMovieClick?.(movie); // ✅ ouvre le MovieOverlay
+                  setIsOpen(false); 
+                  onMovieClick?.(movie); 
                 }}
               />
             </div>

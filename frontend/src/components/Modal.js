@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function Modal({ isOpen, onClose, title, message, buttonText = "OK" }) {
+export default function Modal({ isOpen, onClose, title, message, buttonText = "OK", className = "", }) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -12,7 +12,7 @@ export default function Modal({ isOpen, onClose, title, message, buttonText = "O
         >
           {/* Fenêtre modale */}
           <motion.div
-            className="bg-gray-900 text-white rounded-2xl p-6 w-80 text-center shadow-lg"
+            className={`bg-gray-900 text-white rounded-2xl p-6 w-85 text-center shadow-lg ${className}`}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
